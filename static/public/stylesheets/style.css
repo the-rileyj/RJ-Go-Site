@@ -235,3 +235,12 @@ p.footer-sub{
     color: #0275d8;
     font-size: 100%;
 }
+
+div.website-work{
+    border: solid black;
+    text-align: center;
+    font-family: Oswald;
+    font-weight: bold;
+    font-size: 4rem;
+    color: black;
+}

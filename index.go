@@ -156,5 +156,5 @@ func index(w http.ResponseWriter, r *http.Request){
 func main(){
 	http.HandleFunc("/", index)
 	http.Handle("/public/", http.FileServer(http.Dir("static/")))
-	http.ListenAndServe(":3030", nil)
+	http.ListenAndServe(":3000", nil)
 }
