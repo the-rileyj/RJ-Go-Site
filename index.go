@@ -65,15 +65,6 @@ func inRange(r ipRange, ipAddress net.IP) bool {
 	return false
 }
 
-func (vT *visiTracker) InSlice(a string) bool {
-	for _, b := range vT.IpList {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
-
 func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 	fi, err := ioutil.ReadFile("../numer.json")
@@ -129,7 +120,7 @@ func getIPAdress(r *http.Request) string {
 	return ""
 }
 
-func structToJson(strct interface{}){
+func writeStructToJson(strct interface{}){
 	res, err := json.Marshal(strct)
 	if err != nil {
 		println(err)
@@ -138,14 +129,23 @@ func structToJson(strct interface{}){
 	err = ioutil.WriteFile("../numer.json", res, 0644)
 }
 
+func (vT *visiTracker) InSlice(a string) bool {
+	for _, b := range vT.IpList {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
 func index(w http.ResponseWriter, r *http.Request){
 	if r.URL.Query()["check"] == nil{
 		vT.V++
-		if getIPAdress(r) != "" && !vT.InSlice(getIPAdress(r)){
+		if getIPAdress(r) != "" && !vT.InSlice(getIPAdress(r)) {
 			vT.Uv++
-			vT.IpList = append(vT.IpList, r.Header.Get("X-Forwarded-For"))
+			vT.IpList = append(vT.IpList, getIPAdress(r))
 		}
-		go structToJson(vT)
+		go writeStructToJson(vT)
 	}
 
 	err := tpl.ExecuteTemplate(w, "index.gohtml", vT)
@@ -171,7 +171,7 @@ func hack(w http.ResponseWriter, r *http.Request){
 			vT.Uv++
 			vT.IpList = append(vT.IpList, r.Header.Get("X-Forwarded-For"))
 		}
-		go structToJson(vT)
+		go writeStructToJson(vT)
 	}
 
 	err := tpl.ExecuteTemplate(w, "index.gohtml", vT)
