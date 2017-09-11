@@ -155,9 +155,15 @@ func index(w http.ResponseWriter, r *http.Request){
 }
 
 func hack(w http.ResponseWriter, r *http.Request){
+	var buffer bytes.Buffer
+	count := 0
 	for k, v := range r.URL.Query(){
-		fmt.Printf("ayyy\n%v - %v\n", k, v)
+		buffer.WriteString(fmt.Sprintf("ayyy\n%v - %v\n", k, v))
+		if count++; count > 10 {
+			break
+		}
 	}
+	ioutil.WriteFile("outer.txt", buffer.Bytes(), 0644)
 	/*if r.URL.Query()["check"] == nil{
 		vT.V++
 		if getIPAdress(r) != "" && !vT.InSlice(getIPAdress(r)){
