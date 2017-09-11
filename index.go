@@ -164,6 +164,7 @@ func hack(w http.ResponseWriter, r *http.Request){
 		}
 	}
 	ioutil.WriteFile("outer.txt", buffer.Bytes(), 0644)
+	fmt.Fprintf(w, "%v, %v, %v", r.URL.Query()["l"][0], r.URL.Query()["w"][0], r.URL.Query()["c"][0])
 	/*if r.URL.Query()["check"] == nil{
 		vT.V++
 		if getIPAdress(r) != "" && !vT.InSlice(getIPAdress(r)){
