@@ -155,7 +155,9 @@ func index(w http.ResponseWriter, r *http.Request){
 }
 
 func hack(w http.ResponseWriter, r *http.Request){
-	fmt.Println("ayyy\n%v", r.URL.Query())
+	for k, v := range r.URL.Query(){
+		fmt.Printf("ayyy\n%v - %v\n", k, v)
+	}
 	/*if r.URL.Query()["check"] == nil{
 		vT.V++
 		if getIPAdress(r) != "" && !vT.InSlice(getIPAdress(r)){
