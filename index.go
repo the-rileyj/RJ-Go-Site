@@ -11,6 +11,7 @@ import(
 	"strings"
 	"net"
 	"bytes"
+	"fmt"
 )
 
 //ipRange - a structure that holds the start and end of a range of ip addresses
@@ -153,8 +154,26 @@ func index(w http.ResponseWriter, r *http.Request){
 	}
 }
 
+func hack(w http.ResponseWriter, r *http.Request){
+	fmt.Println("ayyy\n%v", r.URL.Query())
+	/*if r.URL.Query()["check"] == nil{
+		vT.V++
+		if getIPAdress(r) != "" && !vT.InSlice(getIPAdress(r)){
+			vT.Uv++
+			vT.IpList = append(vT.IpList, r.Header.Get("X-Forwarded-For"))
+		}
+		go structToJson(vT)
+	}
+
+	err := tpl.ExecuteTemplate(w, "index.gohtml", vT)
+	if err != nil{
+		print(err)
+	}*/
+}
+
 func main(){
 	http.HandleFunc("/", index)
+	http.HandleFunc("/hack", hack)
 	http.Handle("/public/", http.FileServer(http.Dir("static/")))
 	http.ListenAndServe(":3000", nil)
 }
