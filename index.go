@@ -8,6 +8,7 @@ import(
 	"io/ioutil"
 	"os"
 	"time"
+	"sync"
 	"strings"
 	"net"
 	"bytes"
@@ -21,27 +22,27 @@ type ipRange struct {
 }
 
 var privateRanges = []ipRange{
-	ipRange{
+	{
 		start: net.ParseIP("10.0.0.0"),
 		end:   net.ParseIP("10.255.255.255"),
 	},
-	ipRange{
+	{
 		start: net.ParseIP("100.64.0.0"),
 		end:   net.ParseIP("100.127.255.255"),
 	},
-	ipRange{
+	{
 		start: net.ParseIP("172.16.0.0"),
 		end:   net.ParseIP("172.31.255.255"),
 	},
-	ipRange{
+	{
 		start: net.ParseIP("192.0.0.0"),
 		end:   net.ParseIP("192.0.0.255"),
 	},
-	ipRange{
+	{
 		start: net.ParseIP("192.168.0.0"),
 		end:   net.ParseIP("192.168.255.255"),
 	},
-	ipRange{
+	{
 		start: net.ParseIP("198.18.0.0"),
 		end:   net.ParseIP("198.19.255.255"),
 	},
@@ -53,9 +54,6 @@ type visiTracker struct {
 	IpList []string `json:"ips"`
 }
 
-var tpl *template.Template
-var vT visiTracker
-
 // inRange - check to see if a given ip address is within a range given
 func inRange(r ipRange, ipAddress net.IP) bool {
 	// strcmp type byte comparison
@@ -64,6 +62,10 @@ func inRange(r ipRange, ipAddress net.IP) bool {
 	}
 	return false
 }
+
+var tpl *template.Template
+var vT visiTracker
+var mux sync.Mutex
 
 func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -140,11 +142,13 @@ func (vT *visiTracker) InSlice(a string) bool {
 
 func index(w http.ResponseWriter, r *http.Request){
 	if r.URL.Query()["check"] == nil{
+		mux.Lock()
 		vT.V++
 		if getIPAdress(r) != "" && !vT.InSlice(getIPAdress(r)) {
 			vT.Uv++
 			vT.IpList = append(vT.IpList, getIPAdress(r))
 		}
+		mux.Unlock()
 		go writeStructToJson(vT)
 	}
 
