@@ -157,7 +157,7 @@ func index(w http.ResponseWriter, r *http.Request){
 		print(err)
 	}
 }
-
+/*
 func hack(w http.ResponseWriter, r *http.Request){
 	var buffer bytes.Buffer
 	count := 0
@@ -169,24 +169,12 @@ func hack(w http.ResponseWriter, r *http.Request){
 	}
 	ioutil.WriteFile("outer.txt", buffer.Bytes(), 0644)
 	fmt.Fprintf(w, "%v, %v, %v", r.URL.Query()["l"][0], r.URL.Query()["w"][0], r.URL.Query()["c"][0])
-	/*if r.URL.Query()["check"] == nil{
-		vT.V++
-		if getIPAdress(r) != "" && !vT.InSlice(getIPAdress(r)){
-			vT.Uv++
-			vT.IpList = append(vT.IpList, r.Header.Get("X-Forwarded-For"))
-		}
-		go writeStructToJson(vT)
-	}
+}*/
 
-	err := tpl.ExecuteTemplate(w, "index.gohtml", vT)
-	if err != nil{
-		print(err)
-	}*/
-}
 
 func main(){
 	http.HandleFunc("/", index)
-	http.HandleFunc("/hack", hack)
+	//http.HandleFunc("/hack", hack)
 	http.Handle("/public/", http.FileServer(http.Dir("static/")))
 	http.ListenAndServe(":3000", nil)
 }
