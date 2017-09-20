@@ -12,7 +12,6 @@ import(
 	"strings"
 	"net"
 	"bytes"
-	"fmt"
 )
 
 //ipRange - a structure that holds the start and end of a range of ip addresses
@@ -76,8 +75,8 @@ func init() {
 		print("ERRRRRRRRRRR")
 		os.Exit(1)
 	}
-	tpl = template.New("").Funcs(template.FuncMap{"snapcode":getSnap})
-	tpl.ParseGlob("templates/*.gohtml")
+	tpl = template.Must(template.New("").Funcs(template.FuncMap{"snapcode":getSnap}).ParseGlob("templates/*.gohtml"))
+	//tpl.ParseGlob("templates/*.gohtml")
 }
 
 func getSnap() string{
