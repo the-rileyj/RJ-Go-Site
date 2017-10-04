@@ -12,48 +12,14 @@ import(
 	"strings"
 	"net"
 	"bytes"
+	"log"
+	"fmt"
+
+	mailgun "gopkg.in/mailgun/mailgun-go.v1"
 )
 
-//ipRange - a structure that holds the start and end of a range of ip addresses
-type ipRange struct {
-	start net.IP
-	end net.IP
-}
-
-var privateRanges = []ipRange{
-	{
-		start: net.ParseIP("10.0.0.0"),
-		end:   net.ParseIP("10.255.255.255"),
-	},
-	{
-		start: net.ParseIP("100.64.0.0"),
-		end:   net.ParseIP("100.127.255.255"),
-	},
-	{
-		start: net.ParseIP("172.16.0.0"),
-		end:   net.ParseIP("172.31.255.255"),
-	},
-	{
-		start: net.ParseIP("192.0.0.0"),
-		end:   net.ParseIP("192.0.0.255"),
-	},
-	{
-		start: net.ParseIP("192.168.0.0"),
-		end:   net.ParseIP("192.168.255.255"),
-	},
-	{
-		start: net.ParseIP("198.18.0.0"),
-		end:   net.ParseIP("198.19.255.255"),
-	},
-}
-
-type visiTracker struct {
-	V      int `json:"numb"`
-	Uv     int `json:"uniq"`
-	IpList []string `json:"ips"`
-}
-
-// inRange - check to see if a given ip address is within a range given
+//This, isPrivateSubnet, getIPAdress, and ipRange are from: https://husobee.github.io/golang/ip-address/2015/12/17/remote-ip-go.html
+//inRange - check to see if a given ip address is within a range given
 func inRange(r ipRange, ipAddress net.IP) bool {
 	// strcmp type byte comparison
 	if bytes.Compare(ipAddress, r.start) >= 0 && bytes.Compare(ipAddress, r.end) < 0 {
@@ -62,23 +28,7 @@ func inRange(r ipRange, ipAddress net.IP) bool {
 	return false
 }
 
-var tpl *template.Template
-var vT visiTracker
-var mux sync.Mutex
-
-func init() {
-	rand.Seed(time.Now().UTC().UnixNano())
-	fi, err := ioutil.ReadFile("../numer.json")
-	if err == nil {
-		json.Unmarshal(fi, &vT)
-	} else {
-		print("ERRRRRRRRRRR")
-		os.Exit(1)
-	}
-	tpl = template.Must(template.New("").Funcs(template.FuncMap{"snapcode":getSnap}).ParseGlob("templates/*.gohtml"))
-	//tpl.ParseGlob("templates/*.gohtml")
-}
-
+//Function for determining which snapcode will show on the template
 func getSnap() string{
 	if rand.Intn(2) == 1{
 		return "snapcode_cash"
@@ -139,6 +89,25 @@ func (vT *visiTracker) InSlice(a string) bool {
 	return false
 }
 
+func serveFile(w http.ResponseWriter, r *http.Request){
+	if strings.HasSuffix(r.URL.Path, "rjResume.pdf") {
+		addr := getIPAdress(r)
+		mux.Lock()
+		seen := resumeRequesters[addr]
+		resumeRequesters[addr]++
+		myEmail := mEmail
+		lmg := mg
+		mux.Unlock()
+		if seen == 0 {
+			_, _, err := lmg.Send(mailgun.NewMessage("robot@mail.therileyjohnson.com", fmt.Sprintf("Someone at %s Downloaded Your Resume", addr), "See the title dummy", myEmail))
+			if err != nil {
+				fmt.Println("Error sending email to yourself")
+			}
+		}
+	}
+	http.ServeFile(w, r, "./static" + r.URL.Path)
+}
+
 func index(w http.ResponseWriter, r *http.Request){
 	if r.URL.Query()["check"] == nil{
 		mux.Lock()
@@ -156,24 +125,85 @@ func index(w http.ResponseWriter, r *http.Request){
 		print(err)
 	}
 }
-/*
-func hack(w http.ResponseWriter, r *http.Request){
-	var buffer bytes.Buffer
-	count := 0
-	for k, v := range r.URL.Query(){
-		buffer.WriteString(fmt.Sprintf("ayyy\n%v - %v\n", k, v))
-		if count++; count > 10 {
-			break
-		}
-	}
-	ioutil.WriteFile("outer.txt", buffer.Bytes(), 0644)
-	fmt.Fprintf(w, "%v, %v, %v", r.URL.Query()["l"][0], r.URL.Query()["w"][0], r.URL.Query()["c"][0])
-}*/
 
+//ipRange - a structure that holds the start and end of a range of ip addresses
+type ipRange struct {
+	start net.IP
+	end net.IP
+}
+
+type visiTracker struct {
+	V      int `json:"numb"`
+	Uv     int `json:"uniq"`
+	IpList []string `json:"ips"`
+}
+
+//Struct to hold the private and public keys for the MailGun API
+type info struct {
+	Private string `json:"private"`
+	Public  string `json:"public"`
+	MailServer string `json:"mailServer"`
+	MyEmail string `json:"myEmail"`
+}
+
+var privateRanges = []ipRange{
+	{
+		start: net.ParseIP("10.0.0.0"),
+		end:   net.ParseIP("10.255.255.255"),
+	},
+	{
+		start: net.ParseIP("100.64.0.0"),
+		end:   net.ParseIP("100.127.255.255"),
+	},
+	{
+		start: net.ParseIP("172.16.0.0"),
+		end:   net.ParseIP("172.31.255.255"),
+	},
+	{
+		start: net.ParseIP("192.0.0.0"),
+		end:   net.ParseIP("192.0.0.255"),
+	},
+	{
+		start: net.ParseIP("192.168.0.0"),
+		end:   net.ParseIP("192.168.255.255"),
+	},
+	{
+		start: net.ParseIP("198.18.0.0"),
+		end:   net.ParseIP("198.19.255.255"),
+	},
+}
+
+var tpl *template.Template
+var vT visiTracker
+var mux sync.Mutex
+var mg mailgun.Mailgun
+var mEmail string
+var resumeRequesters map[string]int
+
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
+	resumeRequesters = make(map[string]int)
+	fi, err := ioutil.ReadFile("../numer.json")
+	if err == nil {
+		json.Unmarshal(fi, &vT)
+	} else {
+		print("Error reading traffic data")
+		os.Exit(1)
+	}
+	tpl = template.Must(template.New("").Funcs(template.FuncMap{"snapcode":getSnap}).ParseGlob("templates/*.gohtml"))
+
+	var information info
+	fi, err = ioutil.ReadFile("../keys.json")
+	if err != nil {
+		log.Fatal("Error reading keys data")
+	}
+	json.Unmarshal(fi, &information)
+	mg = mailgun.NewMailgun(information.MailServer, information.Private, information.Public)
+	mEmail = information.MyEmail
+}
 
 func main(){
 	http.HandleFunc("/", index)
-	//http.HandleFunc("/hack", hack)
-	http.Handle("/public/", http.FileServer(http.Dir("static/")))
+	http.HandleFunc("/public/", serveFile)
 	http.ListenAndServe(":3000", nil)
 }
