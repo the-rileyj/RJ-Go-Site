@@ -80,16 +80,8 @@ func (vT *visiTracker) InSlice(a string) bool {
 	return false
 }
 
-func getRowNumber()[]int {
-	return make([]int, 12)
-}
-
-func getColNumber()[]int {
-	return make([]int, 12)
-}
-
-func getIter()[12]int {
-	return [12]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+func getIter()[]int {
+	return make([]int, 1000);
 }
 
 func (vT *visiTracker) swapViews() visiTracker {
@@ -275,8 +267,6 @@ func init() {
 	json.Unmarshal(fi, &information)
 	mg = mailgun.NewMailgun(information.MailServer, information.Private, information.Public)
 	mEmail = information.MyEmail
-	fmt.Println(vT)
-	fmt.Println(information)
 }
 
 func main(){
