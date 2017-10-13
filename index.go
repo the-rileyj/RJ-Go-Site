@@ -16,17 +16,8 @@ import(
 	"fmt"
 
 	mailgun "gopkg.in/mailgun/mailgun-go.v1"
+	"io"
 )
-
-//This, isPrivateSubnet, getIPAdress, and ipRange are from: https://husobee.github.io/golang/ip-address/2015/12/17/remote-ip-go.html
-//inRange - check to see if a given ip address is within a range given
-func inRange(r ipRange, ipAddress net.IP) bool {
-	// strcmp type byte comparison
-	if bytes.Compare(ipAddress, r.start) >= 0 && bytes.Compare(ipAddress, r.end) < 0 {
-		return true
-	}
-	return false
-}
 
 //Function for determining which snapcode will show on the template
 func getSnap() string{
@@ -71,13 +62,13 @@ func getIPAdress(r *http.Request) string {
 	return ""
 }
 
-func writeStructToJson(strct interface{}){
+func writeStructToJson(strct interface{}, path string){
 	res, err := json.Marshal(strct)
 	if err != nil {
 		println(err)
 		return
 	}
-	err = ioutil.WriteFile("../numer.json", res, 0644)
+	err = ioutil.WriteFile(path, res, 0644)
 }
 
 func (vT *visiTracker) InSlice(a string) bool {
@@ -87,6 +78,70 @@ func (vT *visiTracker) InSlice(a string) bool {
 		}
 	}
 	return false
+}
+
+func getRowNumber()[]int {
+	return make([]int, 12)
+}
+
+func getColNumber()[]int {
+	return make([]int, 12)
+}
+
+func getIter()[12]int {
+	return [12]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+}
+
+func (vT *visiTracker) swapViews() visiTracker {
+	return visiTracker{vT.GspinV, vT.Uv, vT.V,vT.IpList}
+}
+
+//From: https://stackoverflow.com/questions/40684307/how-can-i-receive-an-uploaded-file-using-a-golang-net-http-server
+func getPicture(w http.ResponseWriter, r *http.Request) {
+	var Buf bytes.Buffer
+	// in your case file would be fileupload
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	name := strings.Split(header.Filename, ".")
+	fmt.Printf("File name %s\n", name[0])
+	// Copy the file data to my buffer
+	io.Copy(&Buf, file)
+	// do something with the contents...
+	// I normally have a struct defined and unmarshal into a struct, but this will
+	// work as an example
+	contents := Buf.String()
+	fmt.Println(contents)
+	// I reset the buffer in case I want to use it again
+	// reduces memory allocations in more intense projects
+	Buf.Reset()
+	// do something else
+	// etc write header
+	return
+}
+
+func herdSpin(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r.URL.Path)
+	if r.URL.Path == "/herdspin"{
+		mux.Lock()
+		vT.GspinV++
+		if addr := getIPAdress(r); addr != "" && !vT.InSlice(addr) {
+			vT.Uv++
+			vT.IpList = append(vT.IpList, addr)
+		}
+		mux.Unlock()
+		go writeStructToJson(vT, "../numer.json")
+	}
+	err := tpl.ExecuteTemplate(w, "herdspin.gohtml", vT)
+	if err != nil{
+		print(err)
+	}
+}
+
+func spy(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func serveFile(w http.ResponseWriter, r *http.Request){
@@ -109,7 +164,8 @@ func serveFile(w http.ResponseWriter, r *http.Request){
 }
 
 func index(w http.ResponseWriter, r *http.Request){
-	if r.URL.Query()["check"] == nil{
+	//r.URL.Query()["check"] == nil &&
+	if r.URL.Path == "/"{
 		mux.Lock()
 		vT.V++
 		if getIPAdress(r) != "" && !vT.InSlice(getIPAdress(r)) {
@@ -117,7 +173,7 @@ func index(w http.ResponseWriter, r *http.Request){
 			vT.IpList = append(vT.IpList, getIPAdress(r))
 		}
 		mux.Unlock()
-		go writeStructToJson(vT)
+		go writeStructToJson(vT, "../numer.json")
 	}
 
 	err := tpl.ExecuteTemplate(w, "index.gohtml", vT)
@@ -125,6 +181,17 @@ func index(w http.ResponseWriter, r *http.Request){
 		print(err)
 	}
 }
+
+//This, isPrivateSubnet, getIPAdress, and ipRange are from: https://husobee.github.io/golang/ip-address/2015/12/17/remote-ip-go.html
+//inRange - check to see if a given ip address is within a range given
+func inRange(r ipRange, ipAddress net.IP) bool {
+	// strcmp type byte comparison
+	if bytes.Compare(ipAddress, r.start) >= 0 && bytes.Compare(ipAddress, r.end) < 0 {
+		return true
+	}
+	return false
+}
+
 
 //ipRange - a structure that holds the start and end of a range of ip addresses
 type ipRange struct {
@@ -135,6 +202,7 @@ type ipRange struct {
 type visiTracker struct {
 	V      int `json:"numb"`
 	Uv     int `json:"uniq"`
+	GspinV int `json:"gnumb"`
 	IpList []string `json:"ips"`
 }
 
@@ -144,6 +212,13 @@ type info struct {
 	Public  string `json:"public"`
 	MailServer string `json:"mailServer"`
 	MyEmail string `json:"myEmail"`
+	Spyl string `json:"spyLogin"`
+	Spyp string `json:"spyPass"`
+	GPass string `json:"gPass"`
+	Sid string `json:"sid"`
+	Token string `json:"token"`
+	Number string `json:"number"`
+	LyricKey string `json:"lyric_key"`
 }
 
 var privateRanges = []ipRange{
@@ -190,7 +265,7 @@ func init() {
 		print("Error reading traffic data")
 		os.Exit(1)
 	}
-	tpl = template.Must(template.New("").Funcs(template.FuncMap{"snapcode":getSnap}).ParseGlob("templates/*.gohtml"))
+	tpl = template.Must(template.New("").Funcs(template.FuncMap{"snapCode":getSnap, "swapViews":(*visiTracker).swapViews, "getIter":getIter}).ParseGlob("templates/*.gohtml"))
 
 	var information info
 	fi, err = ioutil.ReadFile("../keys.json")
@@ -200,10 +275,14 @@ func init() {
 	json.Unmarshal(fi, &information)
 	mg = mailgun.NewMailgun(information.MailServer, information.Private, information.Public)
 	mEmail = information.MyEmail
+	fmt.Println(vT)
+	fmt.Println(information)
 }
 
 func main(){
 	http.HandleFunc("/", index)
+	http.HandleFunc("/spy", spy)
+	http.HandleFunc("/herdspin", herdSpin)
 	http.HandleFunc("/public/", serveFile)
 	http.ListenAndServe(":3000", nil)
 }

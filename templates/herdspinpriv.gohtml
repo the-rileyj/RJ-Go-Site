@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    {{template "defaulthead" "GOAT"}}
+    <body style="width: 100% !important; margin: 0 0 0 0 !important; padding: 0 0 0 0 !important;">
+        {{template "header" .swapViews}}
+        <h1 id="hs">GOATSPIN</h1>
+        <div class="container-fluid" style="width: 100% !important; margin: 0 0 0 0 !important; padding: 0 0 0 0 !important;">
+            {{range getIter}}
+                <div class="row no-gutters" style="width: 100% !important; margin: 0 0 0 0 !important; padding: 0 0 0 0 !important;">
+                    {{range getIter}}
+                        <div class="col-xs-1" style="width: 100% !important; margin: 0 0 0 0 !important; padding: 0 0 0 0 !important;">
+                            <img src="http://goatspin.org/goatspin_lowres.gif" alt="goat">
+                        </div>
+                    {{end}}
+                </div>
+            {{end}}
+        </div>
+        <iframe width="10" height="10" src="https://www.youtube.com/embed/DnsDbOi6sTY?autoplay=1" frameborder="0" allowfullscreen></iframe>
+        {{template "footer"}}
+        <!--div.super-spacer-->
+        <script type="text/javascript">
+            $(document).ready(function() {
+                setInterval(function(){
+                    $($("#hs")).stop(true,true).animate({left: 300}, 1000, function(){ $(this).stop(true,true).animate({left: 0}, 1000);
+                        });
+                }, 2000);​
+            });
+        </script>
+    </body>
+</html>
