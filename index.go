@@ -115,17 +115,6 @@ func getPicture(w http.ResponseWriter, r *http.Request) {
 }
 
 func herdSpin(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.URL.Path)
-	if r.URL.Path == "/herdspin"{
-		mux.Lock()
-		vT.GspinV++
-		if addr := getIPAdress(r); addr != "" && !vT.InSlice(addr) {
-			vT.Uv++
-			vT.IpList = append(vT.IpList, addr)
-		}
-		mux.Unlock()
-		go writeStructToJson(vT, "../numer.json")
-	}
 	err := tpl.ExecuteTemplate(w, "herdspin.gohtml", vT)
 	if err != nil{
 		print(err)
@@ -136,7 +125,16 @@ func spy(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func serveFile(w http.ResponseWriter, r *http.Request){
+func sms(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(1, r.URL.Query()["AccountSid"])
+	fmt.Println(2, r.URL.Query()["accountsid"])
+}
+
+func static(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("ay"))
+}
+
+func serveFile(w http.ResponseWriter, r *http.Request) {
 	if strings.HasSuffix(r.URL.Path, "rjResume.pdf") {
 		addr := getIPAdress(r)
 		mux.Lock()
@@ -153,11 +151,11 @@ func serveFile(w http.ResponseWriter, r *http.Request){
 		}
 	}
 	http.ServeFile(w, r, "./static" + r.URL.Path)
+	//http.FileServer(http.Dir(r.URL.Path))
 }
 
 func index(w http.ResponseWriter, r *http.Request){
-	//r.URL.Query()["check"] == nil &&
-	if r.URL.Path == "/"{
+	if r.URL.Query()["check"] == nil {
 		mux.Lock()
 		vT.V++
 		if getIPAdress(r) != "" && !vT.InSlice(getIPAdress(r)) {
@@ -211,6 +209,9 @@ type info struct {
 	Token string `json:"token"`
 	Number string `json:"number"`
 	LyricKey string `json:"lyric_key"`
+	Production bool `json:"prod"`
+	ProPort string `json:"pro-port"`
+	DevPort string `json:"dev-port"`
 }
 
 var privateRanges = []ipRange{
@@ -244,7 +245,7 @@ var tpl *template.Template
 var vT visiTracker
 var mux sync.Mutex
 var mg mailgun.Mailgun
-var mEmail string
+var mEmail, port string
 var resumeRequesters map[string]int
 
 func init() {
@@ -267,12 +268,19 @@ func init() {
 	json.Unmarshal(fi, &information)
 	mg = mailgun.NewMailgun(information.MailServer, information.Private, information.Public)
 	mEmail = information.MyEmail
+	if information.Production {
+		port = information.ProPort
+	} else {
+		port = information.DevPort
+	}
 }
 
 func main(){
 	http.HandleFunc("/", index)
+	http.HandleFunc("/static", static)
+	http.HandleFunc("/sms", sms)
 	http.HandleFunc("/spy", spy)
 	http.HandleFunc("/herdspin", herdSpin)
 	http.HandleFunc("/public/", serveFile)
-	http.ListenAndServe(":3000", nil)
+	http.ListenAndServe(port, nil)
 }
