@@ -209,7 +209,7 @@ type info struct {
 	Token string `json:"token"`
 	Number string `json:"number"`
 	LyricKey string `json:"lyric_key"`
-	Production bool `json:"prod"`
+	Production bool `json:"production"`
 	ProPort string `json:"pro-port"`
 	DevPort string `json:"dev-port"`
 }
