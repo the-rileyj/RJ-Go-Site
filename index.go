@@ -291,9 +291,8 @@ func main() {
 	http.HandleFunc("/public/", serveFile)
 	http.HandleFunc("/sms", sms)
 	http.HandleFunc("/spy", spy)
-	http.HandleFunc("/spyer", spyer)
-	http.HandleFunc("/spying", spying)
-	http.HandleFunc("/test", spyer)
+	http.HandleFunc("/wsspy", spyer)
+	http.HandleFunc("/wsconnspy", spying)
 	err := http.ListenAndServe(port, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
