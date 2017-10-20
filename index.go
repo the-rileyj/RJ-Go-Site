@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -16,10 +17,10 @@ import (
 	"time"
 
 	//"encoding/base64"
-	"io"
-	//"image/png"
-	"image"
 
+	//"image/png"
+
+	"github.com/gorilla/websocket"
 	mailgun "gopkg.in/mailgun/mailgun-go.v1"
 )
 
@@ -80,7 +81,7 @@ func writeStructToJson(strct interface{}, path string) {
 }
 
 func (vT *visiTracker) InSlice(a string) bool {
-	for _, b := range vT.IpList {
+	for _, b := range vT.IPList {
 		if b == a {
 			return true
 		}
@@ -93,33 +94,7 @@ func getIter() []int {
 }
 
 func (vT *visiTracker) swapViews() visiTracker {
-	return visiTracker{vT.GspinV, vT.Uv, vT.V, vT.IpList}
-}
-
-//From: https://stackoverflow.com/questions/40684307/how-can-i-receive-an-uploaded-file-using-a-golang-net-http-server
-func getPicture(w http.ResponseWriter, r *http.Request) {
-	var Buf bytes.Buffer
-	// in your case file would be fileupload
-	file, header, err := r.FormFile("file")
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-	name := strings.Split(header.Filename, ".")
-	fmt.Printf("File name %s\n", name[0])
-	// Copy the file data to my buffer
-	io.Copy(&Buf, file)
-	// do something with the contents...
-	// I normally have a struct defined and unmarshal into a struct, but this will
-	// work as an example
-	contents := Buf.String()
-	fmt.Println(contents)
-	// I reset the buffer in case I want to use it again
-	// reduces memory allocations in more intense projects
-	Buf.Reset()
-	// do something else
-	// etc write header
-	return
+	return visiTracker{vT.GspinV, vT.Uv, vT.V, vT.IPList}
 }
 
 func herdSpin(w http.ResponseWriter, r *http.Request) {
@@ -130,10 +105,37 @@ func herdSpin(w http.ResponseWriter, r *http.Request) {
 }
 
 func spy(w http.ResponseWriter, r *http.Request) {
-
+	mux.Lock()
+	lImg := spyImg
+	mux.Unlock()
+	tpl.ExecuteTemplate(w, "spy.gohtml", base64.StdEncoding.EncodeToString(lImg))
 }
 
 func spyer(w http.ResponseWriter, r *http.Request) {
+	conn, err := (&websocket.Upgrader{}).Upgrade(w, r, nil)
+	mux.Lock()
+	gconn = conn
+	mux.Unlock()
+	if _, ok := err.(websocket.HandshakeError); ok {
+		fmt.Println("Not a websocket handshake")
+		return
+	} else if err != nil {
+		log.Printf("%s\nError in establishing WS with spyer\n", err)
+		return
+	}
+	for {
+		_, p, err := conn.ReadMessage()
+		if err != nil {
+			return
+		}
+		mux.Lock()
+		spyImg = p
+		mux.Unlock()
+	}
+}
+
+func spying(w http.ResponseWriter, r *http.Request) {
+	//conn, err := (&websocket.Upgrader{}).Upgrade(w, r, nil)
 
 }
 
@@ -167,7 +169,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 		vT.V++
 		if getIPAdress(r) != "" && !vT.InSlice(getIPAdress(r)) {
 			vT.Uv++
-			vT.IpList = append(vT.IpList, getIPAdress(r))
+			vT.IPList = append(vT.IPList, getIPAdress(r))
 		}
 		mux.Unlock()
 		go writeStructToJson(vT, "../numer.json")
@@ -199,7 +201,7 @@ type visiTracker struct {
 	V      int      `json:"numb"`
 	Uv     int      `json:"uniq"`
 	GspinV int      `json:"gnumb"`
-	IpList []string `json:"ips"`
+	IPList []string `json:"ips"`
 }
 
 //Struct to hold the private and public keys for the MailGun API
@@ -253,7 +255,8 @@ var mux sync.Mutex
 var mg mailgun.Mailgun
 var mEmail, port string
 var resumeRequesters map[string]int
-var spyImg image.Image
+var spyImg []byte
+var gconn *websocket.Conn
 
 func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -284,12 +287,13 @@ func init() {
 
 func main() {
 	http.HandleFunc("/", index)
-	http.HandleFunc("/spyer", spyer)
-	http.HandleFunc("/sms", sms)
-	http.HandleFunc("/spy", spy)
-	http.HandleFunc("/test", spyer)
 	http.HandleFunc("/herdspin", herdSpin)
 	http.HandleFunc("/public/", serveFile)
+	http.HandleFunc("/sms", sms)
+	http.HandleFunc("/spy", spy)
+	http.HandleFunc("/spyer", spyer)
+	http.HandleFunc("/spying", spying)
+	http.HandleFunc("/test", spyer)
 	err := http.ListenAndServe(port, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
