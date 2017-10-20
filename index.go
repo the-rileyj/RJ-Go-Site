@@ -1,109 +1,35 @@
 package main
 
-import(
-	"net/http"
-	"math/rand"
+import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"io/ioutil"
-	"os"
-	"time"
-	"sync"
-	"strings"
-	"net"
-	"bytes"
 	"log"
-	"fmt"
-	"github.com/gorilla/websocket"
+	"math/rand"
+	"net"
+	"net/http"
+	"os"
+	"strings"
+	"sync"
+	"time"
+
 	//"encoding/base64"
 	"io"
 	//"image/png"
 	"image"
 
 	mailgun "gopkg.in/mailgun/mailgun-go.v1"
-	"image/png"
-	"encoding/base64"
 )
 
 //Notes:
 //Fix IP log
 //Influences From:
-//https://github.com/jex-lin/golang-push-image-via-websocket-example/blob/master/main.go
-
-func (c *Client) write() {
-	defer func() {
-		c.socket.Close()
-	}()
-
-	for {
-		select {
-		case message, ok := <-c.send:
-			if !ok {
-				c.socket.WriteMessage(websocket.CloseMessage, []byte{})
-				return
-			}
-
-			c.socket.WriteMessage(websocket.TextMessage, message)
-		}
-	}
-}
-
-func (c *Client) read() {
-	defer func() {
-		manager.unregister <- c
-		c.socket.Close()
-	}()
-
-	for {
-		_, message, err := c.socket.ReadMessage()
-		if err != nil {
-			manager.unregister <- c
-			c.socket.Close()
-			break
-		}
-		jsonMessage, _ := json.Marshal(&Message{Sender: c.id, Content: string(message)})
-		manager.broadcast <- jsonMessage
-	}
-}
-
-func (manager *ClientManager) send(message []byte, ignore *Client) {
-	for conn := range manager.clients {
-		if conn != ignore {
-			conn.send <- message
-		}
-	}
-}
-
-func (manager *ClientManager) start() {
-	for {
-		select {
-		case conn := <-manager.register:
-			manager.clients[conn] = true
-			jsonMessage, _ := json.Marshal(&Message{Content: "/A new socket has connected."})
-			manager.send(jsonMessage, conn)
-		case conn := <-manager.unregister:
-			if _, ok := manager.clients[conn]; ok {
-				close(conn.send)
-				delete(manager.clients, conn)
-				jsonMessage, _ := json.Marshal(&Message{Content: "/A socket has disconnected."})
-				manager.send(jsonMessage, conn)
-			}
-		case message := <-manager.broadcast:
-			for conn := range manager.clients {
-				select {
-				case conn.send <- message:
-				default:
-					close(conn.send)
-					delete(manager.clients, conn)
-				}
-			}
-		}
-	}
-}
 
 //Function for determining which snapcode will show on the template
-func getSnap() string{
-	if rand.Intn(2) == 1{
+func getSnap() string {
+	if rand.Intn(2) == 1 {
 		return "snapcode_cash"
 	} else {
 		return "snapcode_casher"
@@ -117,7 +43,7 @@ func isPrivateSubnet(ipAddress net.IP) bool {
 		// iterate over all our ranges
 		for _, r := range privateRanges {
 			// check if this ip is in a private range
-			if inRange(r, ipAddress){
+			if inRange(r, ipAddress) {
 				return true
 			}
 		}
@@ -130,7 +56,7 @@ func getIPAdress(r *http.Request) string {
 		addresses := strings.Split(r.Header.Get(h), ",")
 		// march from right to left until we get a public address
 		// that will be the address right before our proxy.
-		for i := len(addresses) -1 ; i >= 0; i-- {
+		for i := len(addresses) - 1; i >= 0; i-- {
 			ip := strings.TrimSpace(addresses[i])
 			// header can contain spaces too, strip those out.
 			realIP := net.ParseIP(ip)
@@ -144,7 +70,7 @@ func getIPAdress(r *http.Request) string {
 	return ""
 }
 
-func writeStructToJson(strct interface{}, path string){
+func writeStructToJson(strct interface{}, path string) {
 	res, err := json.Marshal(strct)
 	if err != nil {
 		println(err)
@@ -162,12 +88,12 @@ func (vT *visiTracker) InSlice(a string) bool {
 	return false
 }
 
-func getIter()[]int {
-	return make([]int, 1000);
+func getIter() []int {
+	return make([]int, 1000)
 }
 
 func (vT *visiTracker) swapViews() visiTracker {
-	return visiTracker{vT.GspinV, vT.Uv, vT.V,vT.IpList}
+	return visiTracker{vT.GspinV, vT.Uv, vT.V, vT.IpList}
 }
 
 //From: https://stackoverflow.com/questions/40684307/how-can-i-receive-an-uploaded-file-using-a-golang-net-http-server
@@ -198,7 +124,7 @@ func getPicture(w http.ResponseWriter, r *http.Request) {
 
 func herdSpin(w http.ResponseWriter, r *http.Request) {
 	err := tpl.ExecuteTemplate(w, "herdspin.gohtml", vT)
-	if err != nil{
+	if err != nil {
 		print(err)
 	}
 }
@@ -208,37 +134,7 @@ func spy(w http.ResponseWriter, r *http.Request) {
 }
 
 func spyer(w http.ResponseWriter, r *http.Request) {
-	conn, err := (&websocket.Upgrader{}).Upgrade(w, r, nil)
-	if _, ok := err.(websocket.HandshakeError); ok {
-		fmt.Println( "Not a websocket handshake")
-		return
-	} else if err != nil {
-		log.Printf("%s\nError in establishing WS with spyer\n", err)
-		return
-	}
-	for {
-		_, p, err := conn.ReadMessage()
-		if err != nil {
-			fmt.Printf("%s\nError with recieving websocket connection\n", err)
-			return
-		}
-		spyImg, err = png.Decode(base64.NewDecoder(base64.StdEncoding, strings.NewReader(string(p))))
-		if err != nil {
-			fmt.Printf("%s\nError decoding image\n", err)
-		}
-		out, err := os.Create("out.png")
-		if err != nil {
-			fmt.Println(0, err)
-			return
-		}
 
-		err = png.Encode(out, spyImg)
-
-		if err != nil {
-			fmt.Println(1, err)
-			return
-		}
-	}
 }
 
 func sms(w http.ResponseWriter, r *http.Request) {
@@ -262,10 +158,10 @@ func serveFile(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	http.ServeFile(w, r, "./static" + r.URL.Path)
+	http.ServeFile(w, r, "./static"+r.URL.Path)
 }
 
-func index(w http.ResponseWriter, r *http.Request){
+func index(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Query()["check"] == nil {
 		mux.Lock()
 		vT.V++
@@ -278,7 +174,7 @@ func index(w http.ResponseWriter, r *http.Request){
 	}
 
 	err := tpl.ExecuteTemplate(w, "index.gohtml", vT)
-	if err != nil{
+	if err != nil {
 		print(err)
 	}
 }
@@ -293,36 +189,35 @@ func inRange(r ipRange, ipAddress net.IP) bool {
 	return false
 }
 
-
 //ipRange - a structure that holds the start and end of a range of ip addresses
 type ipRange struct {
 	start net.IP
-	end net.IP
+	end   net.IP
 }
 
 type visiTracker struct {
-	V      int `json:"numb"`
-	Uv     int `json:"uniq"`
-	GspinV int `json:"gnumb"`
+	V      int      `json:"numb"`
+	Uv     int      `json:"uniq"`
+	GspinV int      `json:"gnumb"`
 	IpList []string `json:"ips"`
 }
 
 //Struct to hold the private and public keys for the MailGun API
 type info struct {
-	Private string `json:"private"`
-	Public  string `json:"public"`
+	Private    string `json:"private"`
+	Public     string `json:"public"`
 	MailServer string `json:"mailServer"`
-	MyEmail string `json:"myEmail"`
-	Spyl string `json:"spyLogin"`
-	Spyp string `json:"spyPass"`
-	GPass string `json:"gPass"`
-	Sid string `json:"sid"`
-	Token string `json:"token"`
-	Number string `json:"number"`
-	LyricKey string `json:"lyric_key"`
-	Production bool `json:"production"`
-	ProPort string `json:"pro-port"`
-	DevPort string `json:"dev-port"`
+	MyEmail    string `json:"myEmail"`
+	Spyl       string `json:"spyLogin"`
+	Spyp       string `json:"spyPass"`
+	GPass      string `json:"gPass"`
+	Sid        string `json:"sid"`
+	Token      string `json:"token"`
+	Number     string `json:"number"`
+	LyricKey   string `json:"lyric_key"`
+	Production bool   `json:"production"`
+	ProPort    string `json:"pro-port"`
+	DevPort    string `json:"dev-port"`
 }
 
 var privateRanges = []ipRange{
@@ -352,32 +247,6 @@ var privateRanges = []ipRange{
 	},
 }
 
-type ClientManager struct {
-	clients    map[*Client]bool
-	broadcast  chan []byte
-	register   chan *Client
-	unregister chan *Client
-}
-
-type Client struct {
-	id     string
-	socket *websocket.Conn
-	send   chan []byte
-}
-
-type Message struct {
-	Sender    string `json:"sender,omitempty"`
-	Recipient string `json:"recipient,omitempty"`
-	Content   string `json:"content,omitempty"`
-}
-
-
-var manager = ClientManager{
-	broadcast:  make(chan []byte),
-	register:   make(chan *Client),
-	unregister: make(chan *Client),
-	clients:    make(map[*Client]bool),
-}
 var tpl *template.Template
 var vT visiTracker
 var mux sync.Mutex
@@ -396,7 +265,7 @@ func init() {
 		print("Error reading traffic data")
 		os.Exit(1)
 	}
-	tpl = template.Must(template.New("").Funcs(template.FuncMap{"snapCode":getSnap, "swapViews":(*visiTracker).swapViews, "getIter":getIter}).ParseGlob("templates/*.gohtml"))
+	tpl = template.Must(template.New("").Funcs(template.FuncMap{"snapCode": getSnap, "swapViews": (*visiTracker).swapViews, "getIter": getIter}).ParseGlob("templates/*.gohtml"))
 
 	var information info
 	fi, err = ioutil.ReadFile("../keys.json")
@@ -413,8 +282,7 @@ func init() {
 	}
 }
 
-func main(){
-	go manager.start()
+func main() {
 	http.HandleFunc("/", index)
 	http.HandleFunc("/spyer", spyer)
 	http.HandleFunc("/sms", sms)
