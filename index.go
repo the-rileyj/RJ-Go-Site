@@ -14,10 +14,92 @@ import(
 	"bytes"
 	"log"
 	"fmt"
+	"github.com/gorilla/websocket"
+	//"encoding/base64"
+	"io"
+	//"image/png"
+	"image"
 
 	mailgun "gopkg.in/mailgun/mailgun-go.v1"
-	"io"
+	"image/png"
+	"encoding/base64"
 )
+
+//Notes:
+//Fix IP log
+//Influences From:
+//https://github.com/jex-lin/golang-push-image-via-websocket-example/blob/master/main.go
+
+func (c *Client) write() {
+	defer func() {
+		c.socket.Close()
+	}()
+
+	for {
+		select {
+		case message, ok := <-c.send:
+			if !ok {
+				c.socket.WriteMessage(websocket.CloseMessage, []byte{})
+				return
+			}
+
+			c.socket.WriteMessage(websocket.TextMessage, message)
+		}
+	}
+}
+
+func (c *Client) read() {
+	defer func() {
+		manager.unregister <- c
+		c.socket.Close()
+	}()
+
+	for {
+		_, message, err := c.socket.ReadMessage()
+		if err != nil {
+			manager.unregister <- c
+			c.socket.Close()
+			break
+		}
+		jsonMessage, _ := json.Marshal(&Message{Sender: c.id, Content: string(message)})
+		manager.broadcast <- jsonMessage
+	}
+}
+
+func (manager *ClientManager) send(message []byte, ignore *Client) {
+	for conn := range manager.clients {
+		if conn != ignore {
+			conn.send <- message
+		}
+	}
+}
+
+func (manager *ClientManager) start() {
+	for {
+		select {
+		case conn := <-manager.register:
+			manager.clients[conn] = true
+			jsonMessage, _ := json.Marshal(&Message{Content: "/A new socket has connected."})
+			manager.send(jsonMessage, conn)
+		case conn := <-manager.unregister:
+			if _, ok := manager.clients[conn]; ok {
+				close(conn.send)
+				delete(manager.clients, conn)
+				jsonMessage, _ := json.Marshal(&Message{Content: "/A socket has disconnected."})
+				manager.send(jsonMessage, conn)
+			}
+		case message := <-manager.broadcast:
+			for conn := range manager.clients {
+				select {
+				case conn.send <- message:
+				default:
+					close(conn.send)
+					delete(manager.clients, conn)
+				}
+			}
+		}
+	}
+}
 
 //Function for determining which snapcode will show on the template
 func getSnap() string{
@@ -125,13 +207,43 @@ func spy(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func spyer(w http.ResponseWriter, r *http.Request) {
+	conn, err := (&websocket.Upgrader{}).Upgrade(w, r, nil)
+	if _, ok := err.(websocket.HandshakeError); ok {
+		fmt.Println( "Not a websocket handshake")
+		return
+	} else if err != nil {
+		log.Printf("%s\nError in establishing WS with spyer\n", err)
+		return
+	}
+	for {
+		_, p, err := conn.ReadMessage()
+		if err != nil {
+			fmt.Printf("%s\nError with recieving websocket connection\n", err)
+			return
+		}
+		spyImg, err = png.Decode(base64.NewDecoder(base64.StdEncoding, strings.NewReader(string(p))))
+		if err != nil {
+			fmt.Printf("%s\nError decoding image\n", err)
+		}
+		out, err := os.Create("out.png")
+		if err != nil {
+			fmt.Println(0, err)
+			return
+		}
+
+		err = png.Encode(out, spyImg)
+
+		if err != nil {
+			fmt.Println(1, err)
+			return
+		}
+	}
+}
+
 func sms(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(1, r.URL.Query()["AccountSid"])
 	fmt.Println(2, r.URL.Query()["accountsid"])
-}
-
-func static(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("ay"))
 }
 
 func serveFile(w http.ResponseWriter, r *http.Request) {
@@ -151,7 +263,6 @@ func serveFile(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	http.ServeFile(w, r, "./static" + r.URL.Path)
-	//http.FileServer(http.Dir(r.URL.Path))
 }
 
 func index(w http.ResponseWriter, r *http.Request){
@@ -241,12 +352,39 @@ var privateRanges = []ipRange{
 	},
 }
 
+type ClientManager struct {
+	clients    map[*Client]bool
+	broadcast  chan []byte
+	register   chan *Client
+	unregister chan *Client
+}
+
+type Client struct {
+	id     string
+	socket *websocket.Conn
+	send   chan []byte
+}
+
+type Message struct {
+	Sender    string `json:"sender,omitempty"`
+	Recipient string `json:"recipient,omitempty"`
+	Content   string `json:"content,omitempty"`
+}
+
+
+var manager = ClientManager{
+	broadcast:  make(chan []byte),
+	register:   make(chan *Client),
+	unregister: make(chan *Client),
+	clients:    make(map[*Client]bool),
+}
 var tpl *template.Template
 var vT visiTracker
 var mux sync.Mutex
 var mg mailgun.Mailgun
 var mEmail, port string
 var resumeRequesters map[string]int
+var spyImg image.Image
 
 func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -276,11 +414,16 @@ func init() {
 }
 
 func main(){
+	go manager.start()
 	http.HandleFunc("/", index)
-	http.HandleFunc("/static", static)
+	http.HandleFunc("/spyer", spyer)
 	http.HandleFunc("/sms", sms)
 	http.HandleFunc("/spy", spy)
+	http.HandleFunc("/test", spyer)
 	http.HandleFunc("/herdspin", herdSpin)
 	http.HandleFunc("/public/", serveFile)
-	http.ListenAndServe(port, nil)
+	err := http.ListenAndServe(port, nil)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
 }
