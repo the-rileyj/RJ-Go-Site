@@ -74,17 +74,46 @@ body{
     padding: 0 0 0 0;
 }
 
-#text{
-    background-color: white;
-    margin: 0 0 0 0;
+#inner{
+    padding: 0 0 0 0 !important;
 }
 
-#user{
-    background-color: white;
-    margin: 0 0 0 0;
+.extra-col{
+    background-color: #0275d8;
+    color: black;
+    text-align: left;
 }
 
-#text:focus, #user:focus{
+pre{
+    background-color: #99ddff;
+    font-family: Oswald;
+    width: 100%;
+    margin-bottom: 0;
+    padding: 33Px 15px 966px 10px;
+}
+
+#send{
+    background-color: #99ddff;
+    color: #ffffff;
+    margin: 0 0 0 0;
+    width: 100%;
+    text-align: center;
+    cursor: pointer !important;
+    font-size: 2.1rem;
+}
+
+#send:hover{
+    cursor: pointer !important;
+}
+
+#text, #user, #channel{
+    background-color: white;
+    margin: 0 0 0 0;
+    width: 100%;
+    border: none;
+}
+
+#text:focus, #user:focus, #channel:focus{
     outline: none;
 }
 
