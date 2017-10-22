@@ -57,64 +57,98 @@
         {{template "footer"}}
         <!--div.super-spacer-->
         <script type="text/javascript">
-            function playSound() {
-                var sound = document.getElementById("sound");
-                sound.play();
-            }
-            const agent = ( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) ? "<Mobile>" : "";
-            //var win = new Audio('/public/files/mp3/maskoffnotification2.5.mp3'),
-            var chat = document.getElementById("chat"), user = $("#user"), text = $("#text"), channel = $("#channel"), send = $("#send");
-            var id = String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10));
-            var now = function () {
-                var iso = new Date().toISOString();
-                return iso.split("T")[1].split(".")[0];
-            };
-            var makeMessage = function(str){
-                return "<" + now() + ">" + str + "\n";
-            };
-            function getWS() {
-                var socket = new WebSocket("ws://" + window.location.host + "/wschat");
-                socket.onmessage = function (msg) {
-                    obj = JSON.parse(msg.data);
-                    if (!channel.val().localeCompare(obj.chan)){
-                        chat.innerText += obj.chan.localeCompare("") ? ("<" + obj.chan + ">") : "" + makeMessage(obj.msg);
-                        if (user.val().localeCompare(obj.name)) {
-                            playSound();
+            $(document).onload(function () {
+                function setCookie(cname, cvalue, exdays) {
+                    var d = new Date();
+                    d.setTime(d.getTime() + (exdays*24*60*60*1000));
+                    var expires = "expires="+ d.toUTCString();
+                    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+                }
+                function getCookie(cname) {
+                    var name = cname + "=";
+                    var decodedCookie = decodeURIComponent(document.cookie);
+                    var ca = decodedCookie.split(';');
+                    for(var i = 0; i <ca.length; i++) {
+                        var c = ca[i];
+                        while (c.charAt(0) == ' ') {
+                            c = c.substring(1);
+                        }
+                        if (c.indexOf(name) == 0) {
+                            return c.substring(name.length, c.length);
                         }
                     }
+                    return "";
+                }
+                function playSound() {
+                    var sound = document.getElementById("sound");
+                    sound.play();
+                }
+                const agent = ( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) ? "<Mobile>" : "";
+                //var win = new Audio('/public/files/mp3/maskoffnotification2.5.mp3'),
+                var chat = document.getElementById("chat"), user = $("#user"), text = $("#text"), channel = $("#channel"), send = $("#send");
+                var id = String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10));
+                var now = function () {
+                    var iso = new Date().toISOString();
+                    return iso.split("T")[1].split(".")[0];
                 };
-                return socket;
-            }
-            var ws = getWS();
-            text.keydown(function (e) {
-                if (e.keyCode === 13 && text.val().localeCompare("")) {
-                    if (user.val().localeCompare("")) {
-                        if (user.val().length < 50) {
-                            var obj = JSON.stringify({"msg": "<" + id + "><" + user.val() + "> " + text.val(), "chan": channel.val(), "name": user.val()})
-                            ws.send(obj);
-                            text.val("");
-                        }else {
-                            chat.innerText += makeMessage(" Username is too long!");
+                var makeMessage = function(str){
+                    return "<" + now() + ">" + str + "\n";
+                };
+                function getWS() {
+                    var socket = new WebSocket("ws://" + window.location.host + "/wschat");
+                    socket.onmessage = function (msg) {
+                        obj = JSON.parse(msg.data);
+                        if (!channel.val().localeCompare(obj.chan)){
+                            chat.innerText += obj.chan.localeCompare("") ? ("<" + obj.chan + ">") : "" + makeMessage(obj.msg);
+                            if (user.val().localeCompare(obj.name)) {
+                                playSound();
+                            }
                         }
-                    } else {
-                        chat.innerText += makeMessage(" Need a username to send a message!");
-                    }
+                    };
+                    return socket;
                 }
-            });
-            send.click(function () {
-                if (text.val().localeCompare("")) {
-                    if (user.val().localeCompare("")) {
-                        if (user.val().length < 50) {
-                            var obj = JSON.stringify({"msg": "<" + agent + "><" + id + "><" + user.val() + "> " + text.val(), "chan": channel.val(), "name": user.val()})
-                            ws.send(obj);
-                            text.val("");
-                        }else {
-                            chat.innerText += makeMessage(" Username is too long!");
+                if (getCookie("username").localeCompare("")) {
+                    user.val(getCookie("username"))
+                }
+                var ws = getWS();
+                text.keydown(function (e) {
+                    if (e.keyCode === 13 && text.val().localeCompare("")) {
+                        if (user.val().localeCompare("")) {
+                            if (user.val().length < 50) {
+                                var obj = JSON.stringify({"msg": "<" + id + "><" + user.val() + "> " + text.val(), "chan": channel.val(), "name": user.val()})
+                                ws.send(obj);
+                                text.val("");
+                            }else {
+                                chat.innerText += makeMessage(" Username is too long!");
+                            }
+                        } else {
+                            chat.innerText += makeMessage(" Need a username to send a message!");
                         }
-                    } else {
-                        chat.innerText += makeMessage(" Need a username to send a message!");
                     }
-                }
+                });
+                send.click(function () {
+                    if (text.val().localeCompare("")) {
+                        if (user.val().localeCompare("")) {
+                            if (user.val().length < 50) {
+                                var obj = JSON.stringify({"msg": "<" + agent + "><" + id + "><" + user.val() + "> " + text.val(), "chan": channel.val(), "name": user.val(), "namechange":})
+                                ws.send(obj);
+                                text.val("");
+                            }else {
+                                chat.innerText += makeMessage(" Username is too long!");
+                            }
+                        } else {
+                            chat.innerText += makeMessage(" Need a username to send a message!");
+                        }
+                    }
+                });
+                user.keydown(function (e) {
+                    setCookie("username", user.val(), 7)
+                });
+                setInterval(function () {
+                    if (getCookie("username").localeCompare(user.val())) {
+                        user.val(getCookie("username"));
+                    }
+                }, 250);
             });
         </script>
     </body>
