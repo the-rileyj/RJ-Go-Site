@@ -2,6 +2,7 @@
 <html>
     {{template "defaulthead"}}
     <body>
+    <audio id="sound" src="/public/files/mp3/maskoffnotification2.5.mp3" autostart="false" ></audio>
         {{template "header"}}
         <div class="container-fluid">
             <div class="row no-gutters">
@@ -45,6 +46,10 @@
         {{template "footer"}}
         <!--div.super-spacer-->
         <script type="text/javascript">
+            var playSound = function() {
+                var sound = document.getElementById("#sound");
+                sound.play();
+            }
             var chat = document.getElementById("chat");
             var user = $("#user");
             var text = $("#text");
@@ -61,8 +66,10 @@
                 var socket = new WebSocket("ws://" + window.location.host + "/wschat");
                 socket.onmessage = function (msg) {
                     obj = JSON.parse(msg.data);
-                    if(!channel.val().localeCompare(obj.chan))
+                    if(!channel.val().localeCompare(obj.chan)){
                         chat.innerText += makeMessage(obj.msg);
+                        playSound();
+                    }
                 };
                 return socket;
             }
