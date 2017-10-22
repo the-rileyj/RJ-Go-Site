@@ -74,8 +74,22 @@ body{
     padding: 0 0 0 0;
 }
 
+#text{
+    background-color: white;
+    margin: 0 0 0 0;
+}
+
+#user{
+    background-color: white;
+    margin: 0 0 0 0;
+}
+
+#text:focus, #user:focus{
+    outline: none;
+}
+
 .spacer{
-    padding-top: 4.5rem;
+    padding-top: 6rem;
 }
 
 h6.views{

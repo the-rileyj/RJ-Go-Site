@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+    {{template "defaulthead"}}
+    <body>
+        {{template "header"}}
+        <div class="container-fluid">
+            <div class="row no-gutters">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-8">
+                    <pre id="chat"></pre>
+                </div>
+                <div class="col-sm-2">
+                </div>
+            </div>
+            <div class="row no-gutters">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-8">
+                    <input placeholder="say something" id="text" type="text">
+                </div>
+                <div class="col-sm-2">
+                </div>
+            </div>
+            <div class="row no-gutters">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-8">
+                    <input placeholder="Name" id="user" type="text">
+                </div>
+                <div class="col-sm-2">
+                </div>
+            </div>
+            <div class="row no-gutters">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-8">
+                    <input placeholder="welcome" id="channel" type="text">
+                </div>
+                <div class="col-sm-2">
+                </div>
+            </div>
+        </div>
+        <div id="Home" class="spacer"></div>
+        {{template "footer"}}
+        <!--div.super-spacer-->
+        <script type="text/javascript">
+            var chat = document.getElementById("chat");
+            var user = $("#user");
+            var text = $("#text");
+            var channel = $("#channel");
+            var id = String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10));
+            var now = function () {
+                var iso = new Date().toISOString();
+                return iso.split("T")[1].split(".")[0];
+            };
+            var makeMessage = function(str){
+                return now() + " " + str + "\n";
+            };
+            function getWS() {
+                var socket = new WebSocket("ws://" + window.location.host + "/wschat");
+                socket.onmessage = function (msg) {
+                    obj = JSON.parse(msg.data);
+                    if(!channel.val().localeCompare(obj.chan))
+                        chat.innerText += makeMessage(obj.msg);
+                };
+                return socket;
+            }
+            var ws = getWS()
+            text.keydown(function (e) {
+                if (e.keyCode === 13 && text.val().localeCompare("")) {
+                    if (user.val().localeCompare("")) {
+                        var obj = JSON.stringify({"msg":"<" + id + "><" + user.val() + "> " + text.val(), "chan": channel.val()})
+                        ws.send(obj);
+                        text.val("");
+                        return;
+                    }
+                    chat.innerText += makeMessage("Need a user to send a message!");
+                }
+            });
+        </script>
+    </body>
+</html>
