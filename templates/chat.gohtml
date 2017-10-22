@@ -57,7 +57,7 @@
         {{template "footer"}}
         <!--div.super-spacer-->
         <script type="text/javascript">
-            $(document).onload(function () {
+            $(document).ready(function () {
                 function setCookie(cname, cvalue, exdays) {
                     var d = new Date();
                     d.setTime(d.getTime() + (exdays*24*60*60*1000));
@@ -115,7 +115,7 @@
                     if (e.keyCode === 13 && text.val().localeCompare("")) {
                         if (user.val().localeCompare("")) {
                             if (user.val().length < 50) {
-                                var obj = JSON.stringify({"msg": "<" + id + "><" + user.val() + "> " + text.val(), "chan": channel.val(), "name": user.val()})
+                                var obj = JSON.stringify({"msg": "<" + id + "><" + user.val() + "> " + text.val(), "chan": channel.val(), "name": user.val()});
                                 ws.send(obj);
                                 text.val("");
                             }else {
@@ -130,7 +130,7 @@
                     if (text.val().localeCompare("")) {
                         if (user.val().localeCompare("")) {
                             if (user.val().length < 50) {
-                                var obj = JSON.stringify({"msg": "<" + agent + "><" + id + "><" + user.val() + "> " + text.val(), "chan": channel.val(), "name": user.val(), "namechange":})
+                                var obj = JSON.stringify({"msg": "<" + agent + "><" + id + "><" + user.val() + "> " + text.val(), "chan": channel.val(), "name": user.val()})
                                 ws.send(obj);
                                 text.val("");
                             }else {
@@ -141,14 +141,14 @@
                         }
                     }
                 });
-                user.keydown(function (e) {
+                user.keyup(function (e) {
                     setCookie("username", user.val(), 7)
                 });
                 setInterval(function () {
                     if (getCookie("username").localeCompare(user.val())) {
                         user.val(getCookie("username"));
                     }
-                }, 250);
+                }, 1000);
             });
         </script>
     </body>
