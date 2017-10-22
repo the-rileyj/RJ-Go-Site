@@ -5,10 +5,10 @@
         {{template "header"}}
         <audio id="sound" src="/public/files/mp3/maskoffnotification2.5.mp3" autostart="false"></audio>
         <div class="container-fluid" id="chatter">
-            <div class="row no-gutters chat-row">
+            <div class="row no-gutters">
                 <div class="col-sm-2">
                 </div>
-                <div class="col-sm-8">
+                <div class="col-sm-8 contigous-bg">
                     <pre id="chat"></pre>
                 </div>
                 <div class="col-sm-2">
@@ -17,7 +17,7 @@
             <div class="row no-gutters">
                 <div class="col-sm-2">
                 </div>
-                <div class="col-sm-8">
+                <div class="col-sm-8 contigous-bg">
                     <input placeholder="Message" id="text" type="text">
                 </div>
                 <div class="col-sm-2">
@@ -26,13 +26,13 @@
             <div class="row no-gutters">
                 <div class="col-sm-2">
                 </div>
-                <div class="col-sm-6">
+                <div class="col-sm-6 contigous-bg">
                     <div class="container-fluid no-gutters " id="inner">
                         <div class="row no-gutters">
-                            <div class="col-sm-8">
+                            <div class="col-sm-8" style="background-color: #99ddff;">
                                 <input placeholder="" id="user" type="text">
                             </div>
-                            <div class="col-sm-4 extra-col">
+                            <div class="col-sm-4 extra-col" id="luser">
                                 Username
                             </div>
                         </div>
@@ -40,13 +40,13 @@
                             <div class="col-sm-8">
                                 <input id="channel" type="text">
                             </div>
-                            <div class="col-sm-4 extra-col">
+                            <div class="col-sm-4 extra-col" id="lchannel">
                                 Channel
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-2" id="send">
+                <div class="col-sm-2 contigous-bg" id="send">
                     Send
                 </div>
                 <div class="col-sm-2">
@@ -85,7 +85,7 @@
                 }
                 const agent = ( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) ? "<Mobile>" : "";
                 //var win = new Audio('/public/files/mp3/maskoffnotification2.5.mp3'),
-                var chat = document.getElementById("chat"), user = $("#user"), text = $("#text"), channel = $("#channel"), send = $("#send");
+                var chat = document.getElementById("chat"), user = $("#user"), text = $("#text"), channel = $("#channel"), send = $("#send"), chatter = $("#chat");
                 var id = String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10));
                 var now = function () {
                     var iso = new Date().toISOString();
@@ -103,6 +103,8 @@
                             if (user.val().localeCompare(obj.name)) {
                                 playSound();
                             }
+                            if(parseInt(chatter.css("padding-top")) > 15)
+                                chatter.css("padding-top", (parseInt(chatter.css("padding-top")) - 10) + "px");
                         }
                     };
                     return socket;
@@ -130,7 +132,7 @@
                     if (text.val().localeCompare("")) {
                         if (user.val().localeCompare("")) {
                             if (user.val().length < 50) {
-                                var obj = JSON.stringify({"msg": "<" + agent + "><" + id + "><" + user.val() + "> " + text.val(), "chan": channel.val(), "name": user.val()})
+                                var obj = JSON.stringify({"msg": "<" + agent + "><" + id + "><" + user.val() + ">: " + text.val(), "chan": channel.val(), "name": user.val()})
                                 ws.send(obj);
                                 text.val("");
                             }else {

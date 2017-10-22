@@ -84,12 +84,12 @@ body{
     text-align: left;
 }
 
-pre{
+#chat{
     background-color: #99ddff;
     font-family: Oswald;
     width: 100%;
     margin-bottom: 0;
-    padding: 133Px 15px 33px 10px;
+    padding: 135Px 15px 33px 2px;
 }
 
 #send{
@@ -115,6 +115,15 @@ pre{
     margin: 0 0 0 0;
     width: 100%;
     border: none;
+    border-bottom: solid #99ddff;
+}
+
+.contigous-bg{
+    background-color: #99ddff;
+}
+
+#lchannel{
+    border-top: solid #99ddff;
 }
 
 #text:focus, #user:focus, #channel:focus{
