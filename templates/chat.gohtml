@@ -69,7 +69,9 @@
                     obj = JSON.parse(msg.data);
                     if (!channel.val().localeCompare(obj.chan)){
                         chat.innerText += makeMessage(obj.msg);
-                        playSound();
+                        if (user.val().localeCompare(obj.name)) {
+                            playSound();
+                        }
                     }
                 };
                 return socket;
@@ -78,7 +80,7 @@
             text.keydown(function (e) {
                 if (e.keyCode === 13 && text.val().localeCompare("")) {
                     if (user.val().localeCompare("")) {
-                        var obj = JSON.stringify({"msg":"<" + id + "><" + user.val() + "> " + text.val(), "chan": channel.val()})
+                        var obj = JSON.stringify({"msg":"<" + id + "><" + user.val() + "> " + text.val(), "chan": channel.val(), "name":user.val()})
                         ws.send(obj);
                         text.val("");
                         return;
