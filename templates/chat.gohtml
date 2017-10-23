@@ -139,6 +139,15 @@
                                 chatter.css("padding-top", (parseInt(chatter.css("padding-top")) - 15) + "px");
                         }
                     };
+                    socket.onopen = function () {
+                        console.log(getCookie("id") + " test")
+                        if (!getCookie("id").localeCompare("")) {
+                            id = String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10));
+                            setCookie("id", id, 7);
+                        } else {
+                            id = getCookie("id");
+                        }
+                    };
                     return socket;
                 }
                 if (getCookie("username").localeCompare(""))
