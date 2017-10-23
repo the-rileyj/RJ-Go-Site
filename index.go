@@ -289,7 +289,8 @@ func main() {
 		mp.HandleRequest(w, r)
 	})
 	mp.HandleMessage(func(s *melody.Session, msg []byte) {
-		var gen general
+		mp.BroadcastBinaryOthers(msg, s)
+		/*var gen general
 		err := json.Unmarshal(msg, &gen)
 		if err != nil {
 			fmt.Println("Error unmarshalling JSON", err)
@@ -309,7 +310,7 @@ func main() {
 			} else {
 				mp.BroadcastOthers(msg, s)
 			}
-		}
+		}*/
 	})
 	err := http.ListenAndServe(port, nil)
 	if err != nil {

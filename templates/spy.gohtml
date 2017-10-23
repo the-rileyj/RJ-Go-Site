@@ -43,21 +43,21 @@
                     desc.append("Connected");
                 };
                 socket.onmessage = function(msg){
-                    obj = JSON.parse(msg.data);
+                    //obj = JSON.parse(msg.data);
                     if(obj.pi)
-                        spy.attr("src", "data:image/png;base64," + obj.pic);
+                        spy.attr("src", "data:image/png;base64," + msg.data);
                 };
                 return socket;
             }
             var ws = getWS();
-            sbut.click(function() {
+            /*sbut.click(function() {
                 stream = true
                 ws.send(JSON.stringify({"pi":false,"msg":"another"}));
             });
             setInterval(function() {
                 if(stream)
                     ws.send(JSON.stringify({"pi":false,"msg":"another"}));
-            }, 5000);
+            }, 5000);*/
         </script>
     </body>
 </html>
