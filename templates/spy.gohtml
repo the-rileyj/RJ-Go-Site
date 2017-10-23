@@ -45,7 +45,7 @@
                 socket.onmessage = function(msg){
                     obj = JSON.parse(msg.data);
                     if(obj.pi)
-                        spy.attr("src", "data:image/png;base64," + obj.msg);
+                        spy.attr("src", "data:image/png;base64," + obj.pic);
                 };
                 return socket;
             }
