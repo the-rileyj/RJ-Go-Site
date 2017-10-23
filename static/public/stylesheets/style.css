@@ -74,8 +74,65 @@ body{
     padding: 0 0 0 0;
 }
 
+#inner{
+    padding: 0 0 0 0 !important;
+}
+
+.extra-col{
+    background-color: #0275d8;
+    color: black;
+    text-align: left;
+    font-family: Oswald;
+}
+
+#chat{
+    background-color: #99ddff;
+    font-family: Oswald;
+    width: 100%;
+    margin-bottom: 0;
+    padding: 140Px 15px 33px 2px;
+}
+
+#send{
+    background-color: #99ddff;
+    color: #ffffff;
+    margin: 0 0 0 0;
+    width: 100%;
+    text-align: center;
+    cursor: pointer !important;
+    font-size: 2.1rem;
+}
+
+#chatter{
+    margin-bottom: 60rem;
+}
+
+#send:hover{
+    cursor: pointer !important;
+}
+
+#text, #user, #channel{
+    font-family: Oswald;
+    background-color: white;
+    margin: 0 0 0 0;
+    width: 100%;
+    border: none;
+}
+
+.bottom-row{
+    border-bottom: solid #99ddff;
+}
+
+.contigous-bg{
+    background-color: #99ddff;
+}
+
+#text:focus, #user:focus, #channel:focus{
+    outline: none;
+}
+
 .spacer{
-    padding-top: 4.5rem;
+    padding-top: 6rem;
 }
 
 h6.views{

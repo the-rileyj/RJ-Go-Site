@@ -21,6 +21,7 @@ import (
 	//"image/png"
 
 	"github.com/gorilla/websocket"
+	"github.com/olahol/melody"
 	mailgun "gopkg.in/mailgun/mailgun-go.v1"
 )
 
@@ -68,6 +69,12 @@ func getIPAdress(r *http.Request) string {
 			return ip
 		}
 	}
+	ip, _, err := net.SplitHostPort(r.RemoteAddr)
+	if aip := net.ParseIP(ip); aip != nil && err == nil {
+		if aip.IsGlobalUnicast() && !isPrivateSubnet(aip) {
+			return aip.String()
+		}
+	}
 	return ""
 }
 
@@ -99,6 +106,13 @@ func (vT *visiTracker) swapViews() visiTracker {
 
 func herdSpin(w http.ResponseWriter, r *http.Request) {
 	err := tpl.ExecuteTemplate(w, "herdspin.gohtml", vT)
+	if err != nil {
+		print(err)
+	}
+}
+
+func chat(w http.ResponseWriter, r *http.Request){
+	err := tpl.ExecuteTemplate(w, "chat.gohtml", vT)
 	if err != nil {
 		print(err)
 	}
@@ -289,13 +303,21 @@ func init() {
 }
 
 func main() {
+	m := melody.New()
 	http.HandleFunc("/", index)
+	http.HandleFunc("/chat", chat)
 	http.HandleFunc("/herdspin", herdSpin)
 	http.HandleFunc("/public/", serveFile)
 	http.HandleFunc("/sms", sms)
 	http.HandleFunc("/spy", spy)
 	http.HandleFunc("/wsspy", spyer)
 	http.HandleFunc("/wsconnspy", spying)
+	http.HandleFunc("/wschat", func(w http.ResponseWriter, r *http.Request) {
+		m.HandleRequest(w, r)
+	})
+	m.HandleMessage(func(s *melody.Session, msg []byte) {
+		m.Broadcast(msg)
+	})
 	err := http.ListenAndServe(port, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
