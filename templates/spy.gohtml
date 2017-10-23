@@ -34,19 +34,19 @@
             var spy = $("#spy"), desc = $("#desc"), sbut = $("#stream"), stream = false;
             function getWS() {
                 var socket = new WebSocket("ws://" + window.location.host + "/wsspy");
-                socket.onclose(function(){
+                socket.onclose = function(){
                     desc.contents().remove();
                     desc.append("Disonnected");
-                });
-                socket.onopen(function(){
+                };
+                socket.onopen = function(){
                     desc.contents().remove();
                     desc.append("Connected");
-                });
-                socket.onmessage(function(msg){
+                };
+                socket.onmessage = function(msg){
                     obj = JSON.parse(msg.data);
                     if(obj.pi)
                         spy.attr("src", "data:image/png;base64," + obj.msg);
-                });
+                };
                 return socket;
             }
             var ws = getWS();
