@@ -82,6 +82,7 @@ body{
     background-color: #0275d8;
     color: black;
     text-align: left;
+    font-family: Oswald;
 }
 
 #chat{
@@ -111,19 +112,19 @@ body{
 }
 
 #text, #user, #channel{
+    font-family: Oswald;
     background-color: white;
     margin: 0 0 0 0;
     width: 100%;
     border: none;
+}
+
+.bottom-row{
     border-bottom: solid #99ddff;
 }
 
 .contigous-bg{
     background-color: #99ddff;
-}
-
-#lchannel{
-    border-top: solid #99ddff;
 }
 
 #text:focus, #user:focus, #channel:focus{
