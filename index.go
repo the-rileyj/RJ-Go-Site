@@ -69,6 +69,18 @@ func getIPAdress(r *http.Request) string {
 			return ip
 		}
 	}
+	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+	fmt.Println("0:", r.RemoteAddr)
+	fmt.Println("1:", ip)
+	if realIP := net.ParseIP(ip); realIP != nil {
+		fmt.Println("2:", realIP)
+		fmt.Println("3:", fmt.Sprintf("%d.%d.%d.%d", byte(realIP[0]>>24), byte(realIP[1]>>16), byte(realIP[2]>>8), byte(realIP[3])))
+		fmt.Println("4:", fmt.Sprintf(realIP.To4().String()))
+		fmt.Println("5:", realIP.To4())
+		if realIP.IsGlobalUnicast() && !isPrivateSubnet(realIP) {
+			return realIP.To4().String()
+		}
+	}
 	return ""
 }
 
@@ -172,7 +184,7 @@ func serveFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.Header.Get("X-Forwarded-For"), r.RemoteAddr)
+	fmt.Println(getIPAdress(r))
 	if r.URL.Query()["check"] == nil {
 		mux.Lock()
 		vT.V++
