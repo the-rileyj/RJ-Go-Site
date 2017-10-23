@@ -113,6 +113,9 @@ func spy(w http.ResponseWriter, r *http.Request) {
 
 func spyer(w http.ResponseWriter, r *http.Request) {
 	conn, err := (&websocket.Upgrader{}).Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println(err)
+	}
 	mux.Lock()
 	gconn = conn
 	mux.Unlock()
@@ -135,7 +138,7 @@ func spyer(w http.ResponseWriter, r *http.Request) {
 }
 
 func spying(w http.ResponseWriter, r *http.Request) {
-	//conn, err := (&websocket.Upgrader{}).Upgrade(w, r, nil)
+	conn, err := (&websocket.Upgrader{}).Upgrade(w, r, nil)
 
 }
 
