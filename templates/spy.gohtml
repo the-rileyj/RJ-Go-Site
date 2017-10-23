@@ -5,26 +5,26 @@
         {{template "header"}}
         <div class="container-fluid">
             <div class="row no-gutters">
-                <div class="col-xs-1">
+                <div class="col-sm-1">
                 </div>
-                <div class="col-xs-10">
+                <div class="col-sm-10">
                         <canvas id="canvas"></canvas>
-                    <div id="desc">
-                        Initializing
-                    </div>
                 </div>
-                <div class="col-xs-1">
+                <div class="col-sm-1">
                 </div>
             </div>
             <div class="row no-gutters">
-                <div class="col-xs-1">
+                <div class="col-sm-1">
                 </div>
-                <div class="col-xs-10">
+                <div class="col-sm-10">
+                    <div id="desc">
+                        Initializing
+                    </div>
                     <button id="stream">
                         Stream
                     </button>
                 </div>
-                <div class="col-xs-1">
+                <div class="col-sm-1">
                 </div>
             </div>
         </div>
@@ -47,6 +47,7 @@
                 socket.onmessage = function(msg){
                     var obj = JSON.parse(msg.data);
                     if (obj.pi) {
+                        console.log("test");
                         ws.send(JSON.stringify({"pi":false, "message":""}));
                         background.src = "http://www.therileyjohnson.com/public/images/cap.jpg";
                         ctx.drawImage(background, 0, 0);
