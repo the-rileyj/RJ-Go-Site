@@ -70,9 +70,9 @@ func getIPAdress(r *http.Request) string {
 		}
 	}
 	ip, _, err := net.SplitHostPort(r.RemoteAddr)
-	if aip := net.ParseIP(ip); aip != nil && err != nil {
+	if aip := net.ParseIP(ip); aip != nil && err == nil {
 		if aip.IsGlobalUnicast() && !isPrivateSubnet(aip) {
-			return ip
+			return aip.String()
 		}
 	}
 	return ""
@@ -178,7 +178,6 @@ func serveFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(getIPAdress(r))
 	if r.URL.Query()["check"] == nil {
 		mux.Lock()
 		vT.V++
