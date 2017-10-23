@@ -16,11 +16,22 @@
                 <div class="col-xs-1">
                 </div>
             </div>
+            <div class="row no-gutters">
+                <div class="col-xs-1">
+                </div>
+                <div class="col-xs-10">
+                    <button id="stream">
+                        Stream
+                    </button>
+                </div>
+                <div class="col-xs-1">
+                </div>
+            </div>
         </div>
         {{template "footer"}}
         <!--div.super-spacer-->
         <script type="text/javascript">
-            var spy = $("#spy"), desc = $("#desc");
+            var spy = $("#spy"), desc = $("#desc"), sbut = $("#stream"), stream = false;
             function getWS() {
                 var socket = new WebSocket("ws://" + window.location.host + "/wsspy");
                 socket.onclose(function(){
@@ -38,6 +49,15 @@
                 });
                 return socket;
             }
+            var ws = getWS();
+            sbut.click(function() {
+                stream = true
+                ws.send(JSON.stringify({"pi":false,"msg":"another"}));
+            });
+            setInterval(function() {
+                if(stream)
+                    ws.send(JSON.stringify({"pi":false,"msg":"another"}));
+            }, 250)
         </script>
     </body>
 </html>
