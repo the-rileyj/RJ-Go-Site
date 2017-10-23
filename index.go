@@ -172,6 +172,7 @@ func serveFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r.Header.Get("X-Forwarded-For"))
 	if r.URL.Query()["check"] == nil {
 		mux.Lock()
 		vT.V++
