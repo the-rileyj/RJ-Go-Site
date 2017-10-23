@@ -112,7 +112,7 @@
                 const agent = ( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) ? "<Mobile>" : "";
                 //var win = new Audio('/public/files/mp3/maskoffnotification2.5.mp3'),
                 var chat = document.getElementById("chat"), user = $("#user"), text = $("#text"), channel = $("#channel"), send = $("#send"), chatter = $("#chat");
-                chat.innerText += "This is the following structure of messages:\n\"<CHANNEL><TIME><ID><USERNAME> MESSAGE\"\n" +
+                chat.innerText += "This is the following structure of messages:\n\"<TIME><CHANNEL><ID><USERNAME> MESSAGE\"\n" +
                     "TIME - Time the message was sent\n" +
                     "CHANNEL - Displays if not empty, channel the message was recieved from\n" +
                     "ID - Unique ID of the sender\n" +
