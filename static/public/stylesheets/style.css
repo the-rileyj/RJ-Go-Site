@@ -91,6 +91,12 @@ body{
     background-color: #99ddff;
 }
 
+#stream{
+    background-color: red;
+    outline: none;
+    border: 0 none;
+}
+
 #chat{
     background-color: #99ddff;
     font-family: Oswald;
