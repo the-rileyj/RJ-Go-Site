@@ -99,7 +99,7 @@
                     socket.onmessage = function (msg) {
                         obj = JSON.parse(msg.data);
                         if (!channel.val().localeCompare(obj.chan)){
-                            chat.innerText += obj.chan.localeCompare("") ? ("<" + obj.chan + ">") : "" + makeMessage(obj.msg);
+                            chat.innerText += (obj.chan.localeCompare("") ? ("<" + obj.chan + ">") : "") + makeMessage(obj.msg);
                             if (user.val().localeCompare(obj.name)) {
                                 playSound();
                             }
