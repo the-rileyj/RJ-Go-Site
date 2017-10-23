@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -116,38 +115,8 @@ func chat(w http.ResponseWriter, r *http.Request) {
 }
 
 func spy(w http.ResponseWriter, r *http.Request) {
-	mux.Lock()
-	lImg := spyImg
-	mux.Unlock()
-	tpl.ExecuteTemplate(w, "spy.gohtml", base64.StdEncoding.EncodeToString(lImg))
+	tpl.ExecuteTemplate(w, "spy.gohtml", nil)
 }
-
-/*func spyer(w http.ResponseWriter, r *http.Request) {
-	conn, err := (&websocket.Upgrader{}).Upgrade(w, r, nil)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	mux.Lock()
-	gconn = conn
-	mux.Unlock()
-	if _, ok := err.(websocket.HandshakeError); ok {
-		fmt.Println("Not a websocket handshake")
-		return
-	} else if err != nil {
-		log.Printf("%s\nError in establishing WS with spyer\n", err)
-		return
-	}
-	for {
-		_, p, err := conn.ReadMessage()
-		if err != nil {
-			return
-		}
-		mux.Lock()
-		spyImg = p
-		mux.Unlock()
-	}
-}*/
 
 func sms(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(1, r.URL.Query()["AccountSid"])
@@ -333,6 +302,7 @@ func main() {
 				fmt.Println("Broadcasted")
 			}
 		} else {
+			fmt.Println("Broadcasted2")
 			if pconn != nil {
 				mp.BroadcastMultiple(msg, []*melody.Session{pconn})
 			} else {
