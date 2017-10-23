@@ -11,7 +11,6 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -20,7 +19,6 @@ import (
 
 	//"image/png"
 
-	"github.com/gorilla/websocket"
 	"github.com/olahol/melody"
 	mailgun "gopkg.in/mailgun/mailgun-go.v1"
 )
@@ -33,9 +31,8 @@ import (
 func getSnap() string {
 	if rand.Intn(2) == 1 {
 		return "snapcode_cash"
-	} else {
-		return "snapcode_casher"
 	}
+	return "snapcode_casher"
 }
 
 // isPrivateSubnet - check to see if this ip is in a private subnet
@@ -125,7 +122,7 @@ func spy(w http.ResponseWriter, r *http.Request) {
 	tpl.ExecuteTemplate(w, "spy.gohtml", base64.StdEncoding.EncodeToString(lImg))
 }
 
-func spyer(w http.ResponseWriter, r *http.Request) {
+/*func spyer(w http.ResponseWriter, r *http.Request) {
 	conn, err := (&websocket.Upgrader{}).Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -150,7 +147,7 @@ func spyer(w http.ResponseWriter, r *http.Request) {
 		spyImg = p
 		mux.Unlock()
 	}
-}
+}*/
 
 func sms(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(1, r.URL.Query()["AccountSid"])
@@ -282,8 +279,9 @@ func init() {
 	if err == nil {
 		json.Unmarshal(fi, &vT)
 	} else {
-		print("Error reading traffic data")
-		os.Exit(1)
+		/*print("Error reading traffic data")
+		os.Exit(1)*/
+		vT = visiTracker{0, 0, 0, []string{}}
 	}
 	tpl = template.Must(template.New("").Funcs(template.FuncMap{"snapCode": getSnap, "swapViews": (*visiTracker).swapViews, "getIter": getIter}).ParseGlob("templates/*.gohtml"))
 
@@ -323,10 +321,15 @@ func main() {
 	})
 	mp.HandleMessage(func(s *melody.Session, msg []byte) {
 		var gen general
-		err := json.Decoder(msg).Decode(&gen)
+		err := json.Unmarshal(msg, &gen)
+		if err != nil {
+			fmt.Println("Error unmarshalling JSON", err)
+		}
 		if gen.Pi {
 			pconn = s
-			mp.BroadcastOthers(msg, s)
+			if err = mp.BroadcastOthers(msg, s); err != nil {
+				fmt.Println("Error Broadcasting to Others", err)
+			}
 		} else {
 			if pconn != nil {
 				mp.BroadcastMultiple(msg, []*melody.Session{pconn})
