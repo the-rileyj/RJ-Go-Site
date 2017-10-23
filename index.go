@@ -329,6 +329,8 @@ func main() {
 			pconn = s
 			if err = mp.BroadcastOthers(msg, s); err != nil {
 				fmt.Println("Error Broadcasting to Others", err)
+			} else {
+				fmt.Println("Broadcasted")
 			}
 		} else {
 			if pconn != nil {
