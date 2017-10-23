@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"log"
 	"math/rand"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -48,16 +50,17 @@ func isPrivateSubnet(ipAddress net.IP) bool {
 	return false
 }
 
-/*func getPic(w http.ResponseWriter, r *http.Request) {
+func setPic(w http.ResponseWriter, r *http.Request) {
 	//var Buf bytes.Buffer
-	file, _, err := r.FormFile("spyimage")
+	file, _, err := r.FormFile("pimp")
 	if err != nil {
 		log.Print(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	img, _, err := image.Decode(file)
+	fi, err := os.Open("/static/public/images/cap.jpg")
+	//img, _, err := image.Decode(file)
+	io.Copy(fi, file)
 	if err != nil {
 		log.Printf("could not decode body into an image")
 		w.Header().Add("Access-Control-Allow-Origin", "*")
@@ -66,7 +69,7 @@ func isPrivateSubnet(ipAddress net.IP) bool {
 		return
 	}
 
-}*/
+}
 
 func getIPAdress(r *http.Request) string {
 	for _, h := range []string{"X-Forwarded-For", "X-Real-Ip"} {
@@ -297,6 +300,7 @@ func main() {
 	http.HandleFunc("/public/", serveFile)
 	http.HandleFunc("/sms", sms)
 	http.HandleFunc("/spy", spy)
+	http.HandleFunc("/subphoto", setPic)
 	http.HandleFunc("/wschat", func(w http.ResponseWriter, r *http.Request) {
 		mc.HandleRequest(w, r)
 	})

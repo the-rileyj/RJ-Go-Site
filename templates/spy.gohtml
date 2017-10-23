@@ -31,7 +31,7 @@
         {{template "footer"}}
         <!--div.super-spacer-->
         <script type="text/javascript">
-            var spy = $("#spy"), desc = $("#desc"), sbut = $("#stream"), canvas = $("#canvas"), ctx = canvas.getContext("2d"), background = new Image();//, stream = false;
+            var strm = truej;spy = $("#spy"), desc = $("#desc"), steam = $("#stream"), canvas = $("#canvas"), ctx = canvas.getContext("2d"), background = new Image();//, stream = false;
             canvas.width = 934;
             canvas.height = 622;
             function getWS() {
@@ -51,6 +51,9 @@
                 return socket;
             }
             var ws = getWS();
+            stream.on("click", function() {
+
+            })
             /*sbut.click(function() {
                 stream = true
                 ws.send(JSON.stringify({"pi":false,"msg":"another"}));
