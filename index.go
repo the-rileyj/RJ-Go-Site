@@ -294,6 +294,7 @@ func main() {
 		if err != nil {
 			fmt.Println("Error unmarshalling JSON", err)
 		}
+		fmt.Println(string(msg), gen)
 		if gen.Pi {
 			pconn = s
 			if err = mp.BroadcastOthers(msg, s); err != nil {
