@@ -289,7 +289,7 @@ func main() {
 		mp.HandleRequest(w, r)
 	})
 	mp.HandleMessage(func(s *melody.Session, msg []byte) {
-		mp.BroadcastBinaryOthers(msg, s)
+		mp.BroadcastOthers(msg, s)
 		/*var gen general
 		err := json.Unmarshal(msg, &gen)
 		if err != nil {
