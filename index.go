@@ -16,10 +16,6 @@ import (
 	"sync"
 	"time"
 
-	//"encoding/base64"
-
-	//"image/png"
-
 	"github.com/olahol/melody"
 	mailgun "gopkg.in/mailgun/mailgun-go.v1"
 )
@@ -50,25 +46,24 @@ func isPrivateSubnet(ipAddress net.IP) bool {
 	return false
 }
 
-func setPic(w http.ResponseWriter, r *http.Request) {
-	//var Buf bytes.Buffer
-	file, _, err := r.FormFile("pimp")
+func setSpyPic(w http.ResponseWriter, r *http.Request) {
+	file, _, err := r.FormFile("pimg")
 	if err != nil {
-		log.Print(err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	fi, err := os.Open("/static/public/images/cap.jpg")
-	//img, _, err := image.Decode(file)
-	io.Copy(fi, file)
-	if err != nil {
-		log.Printf("could not decode body into an image")
-		w.Header().Add("Access-Control-Allow-Origin", "*")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("could not decode body image"))
+		fmt.Println(err)
 		return
 	}
 
+	fi, err := os.Create("./static/public/images/cap.jpg")
+	if err != nil {
+		fmt.Println("Failed to create photo", err)
+		return
+	}
+
+	_, err = io.Copy(fi, file)
+	if err != nil {
+		fmt.Println("Failed to save photo", err)
+		return
+	}
 }
 
 func getIPAdress(r *http.Request) string {
@@ -205,8 +200,9 @@ type visiTracker struct {
 	IPList []string `json:"ips"`
 }
 
-type general struct {
-	Pi bool `json:"pi"`
+type message struct {
+	Pi      bool   `json:"pi"`
+	Message string `json:"message"`
 }
 
 //Struct to hold the private and public keys for the MailGun API
@@ -261,7 +257,8 @@ var mg mailgun.Mailgun
 var mEmail, port string
 var resumeRequesters map[string]int
 var spyImg []byte
-var pconn *melody.Session
+var pIngress bool = true
+var lIngress time.Time
 
 func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -300,7 +297,7 @@ func main() {
 	http.HandleFunc("/public/", serveFile)
 	http.HandleFunc("/sms", sms)
 	http.HandleFunc("/spy", spy)
-	http.HandleFunc("/subphoto", setPic)
+	http.HandleFunc("/subphoto", setSpyPic)
 	http.HandleFunc("/wschat", func(w http.ResponseWriter, r *http.Request) {
 		mc.HandleRequest(w, r)
 	})
@@ -311,19 +308,32 @@ func main() {
 		mp.HandleRequest(w, r)
 	})
 	mp.HandleMessage(func(s *melody.Session, msg []byte) {
-		var gen general
-		err := json.Unmarshal(msg, &gen)
+		var mssg message
+		err := json.Unmarshal(msg, &mssg)
 		if err != nil {
 			fmt.Println("Error unmarshalling JSON", err)
 		}
 
-		fmt.Println(string(msg), gen)
-		if gen.Pi {
-			pconn = s
+		if mssg.Pi {
+			mux.Lock()
+			pIngress = true
+			mux.Unlock()
 			if err = mp.BroadcastOthers(msg, s); err != nil {
 				fmt.Println("Error Broadcasting to Others", err)
-			} else {
-				fmt.Println("Broadcasted")
+			}
+		} else {
+			mux.Lock()
+			bIngress := pIngress
+			tIngress := lIngress
+			mux.Unlock()
+			if bIngress || time.Now().After(tIngress.Add(time.Second*3)) {
+				mux.Lock()
+				lIngress = time.Now()
+				pIngress = false
+				mux.Unlock()
+				if err = mp.BroadcastOthers(msg, s); err != nil {
+					fmt.Println("Error Broadcasting to Others", err)
+				}
 			}
 		}
 	})

@@ -31,7 +31,7 @@
         {{template "footer"}}
         <!--div.super-spacer-->
         <script type="text/javascript">
-            var strm = truej;spy = $("#spy"), desc = $("#desc"), steam = $("#stream"), canvas = $("#canvas"), ctx = canvas.getContext("2d"), background = new Image();//, stream = false;
+            var strm = false, spy = $("#spy"), desc = $("#desc"), steam = $("#stream"), canvas = $("#canvas"), ctx = canvas.getContext("2d"), background = new Image();//, stream = false;
             canvas.width = 934;
             canvas.height = 622;
             function getWS() {
@@ -45,23 +45,24 @@
                     desc.append("Connected");
                 };
                 socket.onmessage = function(msg){
-                    background.src = "http://therileyjohnson.com/public/files/images/cap.jpg"
-                    ctx.drawImage(background, 0, 0)
+                    var obj = JSON.parse(msg);
+                    if(obj.pi){
+                        background.src = "http://www.therileyjohnson.com/public/files/images/cap.jpg";
+                        ctx.drawImage(background, 0, 0);
+                    }
                 };
                 return socket;
             }
             var ws = getWS();
             stream.on("click", function() {
-
+                strm = !strm;
+                if (strm) {
+                    ws.send(JSON.stringify({"pi":false, "message":""}));
+                    stream.css("background-color", "green")
+                } else {
+                    stream.css("background-color", "red")
+                }
             })
-            /*sbut.click(function() {
-                stream = true
-                ws.send(JSON.stringify({"pi":false,"msg":"another"}));
-            });
-            setInterval(function() {
-                if(stream)
-                    ws.send(JSON.stringify({"pi":false,"msg":"another"}));
-            }, 5000);*/
         </script>
     </body>
 </html>

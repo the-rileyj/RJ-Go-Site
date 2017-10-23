@@ -2,3 +2,7 @@ index.exe
 .idea/
 outer.txt
 debug
+nohup.outer
+*.png
+*.jpg
+index
