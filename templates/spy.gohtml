@@ -8,7 +8,7 @@
                 <div class="col-xs-1">
                 </div>
                 <div class="col-xs-10">
-                    <img id="spy" alt="No Image" src=""/>
+                        <canvas id="canvas"></canvas>
                     <div id="desc">
                         Initializing
                     </div>
@@ -31,7 +31,7 @@
         {{template "footer"}}
         <!--div.super-spacer-->
         <script type="text/javascript">
-            var spy = $("#spy"), desc = $("#desc"), sbut = $("#stream"), stream = false;
+            var spy = $("#spy"), desc = $("#desc"), sbut = $("#stream"), canvas = $("#canvas"), ctx = canvas.getContext("2d");//, stream = false;
             function getWS() {
                 var socket = new WebSocket("ws://" + window.location.host + "/wsspy");
                 socket.onclose = function(){

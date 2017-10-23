@@ -23,7 +23,6 @@ import (
 )
 
 //Notes:
-//Fix IP log
 //Influences From:
 
 //Function for determining which snapcode will show on the template
@@ -48,6 +47,26 @@ func isPrivateSubnet(ipAddress net.IP) bool {
 	}
 	return false
 }
+
+/*func getPic(w http.ResponseWriter, r *http.Request) {
+	//var Buf bytes.Buffer
+	file, _, err := r.FormFile("spyimage")
+	if err != nil {
+		log.Print(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	img, _, err := image.Decode(file)
+	if err != nil {
+		log.Printf("could not decode body into an image")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("could not decode body image"))
+		return
+	}
+
+}*/
 
 func getIPAdress(r *http.Request) string {
 	for _, h := range []string{"X-Forwarded-For", "X-Real-Ip"} {
@@ -278,7 +297,6 @@ func main() {
 	http.HandleFunc("/public/", serveFile)
 	http.HandleFunc("/sms", sms)
 	http.HandleFunc("/spy", spy)
-	//http.HandleFunc("/wsspy", spyer)
 	http.HandleFunc("/wschat", func(w http.ResponseWriter, r *http.Request) {
 		mc.HandleRequest(w, r)
 	})
@@ -289,12 +307,12 @@ func main() {
 		mp.HandleRequest(w, r)
 	})
 	mp.HandleMessage(func(s *melody.Session, msg []byte) {
-		mp.BroadcastOthers(msg, s)
-		/*var gen general
+		var gen general
 		err := json.Unmarshal(msg, &gen)
 		if err != nil {
 			fmt.Println("Error unmarshalling JSON", err)
 		}
+
 		fmt.Println(string(msg), gen)
 		if gen.Pi {
 			pconn = s
@@ -303,14 +321,7 @@ func main() {
 			} else {
 				fmt.Println("Broadcasted")
 			}
-		} else {
-			fmt.Println("Broadcasted2")
-			if pconn != nil {
-				mp.BroadcastMultiple(msg, []*melody.Session{pconn})
-			} else {
-				mp.BroadcastOthers(msg, s)
-			}
-		}*/
+		}
 	})
 	err := http.ListenAndServe(port, nil)
 	if err != nil {

@@ -109,7 +109,7 @@
                     var sound = document.getElementById("sound");
                     sound.play();
                 }
-                const agent = ( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) ? "<Mobile>" : "";
+                //const agent = ( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) ? "<Mobile>" : "";
                 //var win = new Audio('/public/files/mp3/maskoffnotification2.5.mp3'),
                 var chat = document.getElementById("chat"), user = $("#user"), text = $("#text"), channel = $("#channel"), send = $("#send"), chatter = $("#chat");
                 chat.innerText += "This is the following structure of messages:\n\"<TIME><CHANNEL><ID><USERNAME> MESSAGE\"\n" +
@@ -120,7 +120,7 @@
                     "MESSAGE - Message of the user\n" +
                     "Alternatively, for error's:\n\"<TIME><ERROR> MESSAGE\"\n" +
                     "Where MESSAGE display's the error message\n\n";
-                if (getCookie("id").localeCompare("")) {
+                if (!getCookie("id").localeCompare("")) {
                     var id = String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10));
                     setCookie("id", id, 7);
                 } else {
