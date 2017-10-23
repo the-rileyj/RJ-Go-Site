@@ -5,14 +5,37 @@
         {{template "header"}}
         <div class="container-fluid">
             <div class="row no-gutters">
-                <img alt="Spy Image" src="data:image/png;base64,{{.}}"/>
+                <div class="col-xs-1">
+                </div>
+                <div class="col-xs-10">
+                    <img id="spy" alt="No Image" src=""/>
+                    <div id="desc">
+                        Initializing
+                    </div>
+                </div>
+                <div class="col-xs-1">
+                </div>
             </div>
         </div>
         {{template "footer"}}
         <!--div.super-spacer-->
         <script type="text/javascript">
+            var spy = $("#spy"), desc = $("#desc");
             function getWS() {
-                var socket = new WebSocket("ws://therileyjohnson.com/wsspying");
+                var socket = new WebSocket("ws://" + window.location.host + "/wsspy");
+                socket.onclose(function(){
+                    desc.contents().remove();
+                    desc.append("Disonnected");
+                });
+                socket.onopen(function(){
+                    desc.contents().remove();
+                    desc.append("Connected");
+                });
+                socket.onmessage(function(msg){
+                    obj = JSON.parse(msg.data);
+                    if(obj.pi)
+                        spy.attr("src", "data:image/png;base64," + obj.msg);
+                });
                 return socket;
             }
         </script>

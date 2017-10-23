@@ -85,6 +85,12 @@ body{
     font-family: Oswald;
 }
 
+#desc{
+    text-align: center;
+    width: 100%;
+    background-color: #99ddff;
+}
+
 #chat{
     background-color: #99ddff;
     font-family: Oswald;

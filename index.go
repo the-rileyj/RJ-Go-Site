@@ -78,7 +78,7 @@ func getIPAdress(r *http.Request) string {
 	return ""
 }
 
-func writeStructToJson(strct interface{}, path string) {
+func writeStructToJSON(strct interface{}, path string) {
 	res, err := json.Marshal(strct)
 	if err != nil {
 		println(err)
@@ -111,7 +111,7 @@ func herdSpin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func chat(w http.ResponseWriter, r *http.Request){
+func chat(w http.ResponseWriter, r *http.Request) {
 	err := tpl.ExecuteTemplate(w, "chat.gohtml", vT)
 	if err != nil {
 		print(err)
@@ -129,6 +129,7 @@ func spyer(w http.ResponseWriter, r *http.Request) {
 	conn, err := (&websocket.Upgrader{}).Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 	mux.Lock()
 	gconn = conn
@@ -149,11 +150,6 @@ func spyer(w http.ResponseWriter, r *http.Request) {
 		spyImg = p
 		mux.Unlock()
 	}
-}
-
-func spying(w http.ResponseWriter, r *http.Request) {
-	conn, err := (&websocket.Upgrader{}).Upgrade(w, r, nil)
-
 }
 
 func sms(w http.ResponseWriter, r *http.Request) {
@@ -189,7 +185,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 			vT.IPList = append(vT.IPList, getIPAdress(r))
 		}
 		mux.Unlock()
-		go writeStructToJson(vT, "../numer.json")
+		go writeStructToJSON(vT, "../numer.json")
 	}
 
 	err := tpl.ExecuteTemplate(w, "index.gohtml", vT)
@@ -219,6 +215,10 @@ type visiTracker struct {
 	Uv     int      `json:"uniq"`
 	GspinV int      `json:"gnumb"`
 	IPList []string `json:"ips"`
+}
+
+type general struct {
+	Pi bool `json:"pi"`
 }
 
 //Struct to hold the private and public keys for the MailGun API
@@ -273,7 +273,7 @@ var mg mailgun.Mailgun
 var mEmail, port string
 var resumeRequesters map[string]int
 var spyImg []byte
-var gconn *websocket.Conn
+var pconn *melody.Session
 
 func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -303,20 +303,37 @@ func init() {
 }
 
 func main() {
-	m := melody.New()
+	mc := melody.New()
+	mp := melody.New()
 	http.HandleFunc("/", index)
 	http.HandleFunc("/chat", chat)
 	http.HandleFunc("/herdspin", herdSpin)
 	http.HandleFunc("/public/", serveFile)
 	http.HandleFunc("/sms", sms)
 	http.HandleFunc("/spy", spy)
-	http.HandleFunc("/wsspy", spyer)
-	http.HandleFunc("/wsconnspy", spying)
+	//http.HandleFunc("/wsspy", spyer)
 	http.HandleFunc("/wschat", func(w http.ResponseWriter, r *http.Request) {
-		m.HandleRequest(w, r)
+		mc.HandleRequest(w, r)
 	})
-	m.HandleMessage(func(s *melody.Session, msg []byte) {
-		m.Broadcast(msg)
+	mc.HandleMessage(func(s *melody.Session, msg []byte) {
+		mc.Broadcast(msg)
+	})
+	http.HandleFunc("/wsspy", func(w http.ResponseWriter, r *http.Request) {
+		mp.HandleRequest(w, r)
+	})
+	mp.HandleMessage(func(s *melody.Session, msg []byte) {
+		var gen general
+		err := json.Decoder(msg).Decode(&gen)
+		if gen.Pi {
+			pconn = s
+			mp.BroadcastOthers(msg, s)
+		} else {
+			if pconn != nil {
+				mp.BroadcastMultiple(msg, []*melody.Session{pconn})
+			} else {
+				mp.BroadcastOthers(msg, s)
+			}
+		}
 	})
 	err := http.ListenAndServe(port, nil)
 	if err != nil {
