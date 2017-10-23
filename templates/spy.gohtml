@@ -45,8 +45,8 @@
                     desc.append("Connected");
                 };
                 socket.onmessage = function(msg){
-                    var obj = JSON.parse(msg);
-                    if(obj.pi){
+                    var obj = JSON.parse(msg.data);
+                    if (obj.pi) {
                         background.src = "http://www.therileyjohnson.com/public/files/images/cap.jpg";
                         ctx.drawImage(background, 0, 0);
                     }
