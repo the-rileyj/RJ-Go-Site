@@ -31,7 +31,9 @@
         {{template "footer"}}
         <!--div.super-spacer-->
         <script type="text/javascript">
-            var spy = $("#spy"), desc = $("#desc"), sbut = $("#stream"), canvas = $("#canvas"), ctx = canvas.getContext("2d");//, stream = false;
+            var spy = $("#spy"), desc = $("#desc"), sbut = $("#stream"), canvas = $("#canvas"), ctx = canvas.getContext("2d"), background = new Image();//, stream = false;
+            canvas.width = 934;
+            canvas.height = 622;
             function getWS() {
                 var socket = new WebSocket("ws://" + window.location.host + "/wsspy");
                 socket.onclose = function(){
@@ -43,9 +45,8 @@
                     desc.append("Connected");
                 };
                 socket.onmessage = function(msg){
-                    //obj = JSON.parse(msg.data);
-                    console.log("ATTT");
-                    spy.attr("src", "data:image/png;base64," + msg.data);
+                    background.src = "http://therileyjohnson.com/public/files/images/cap.jpg"
+                    ctx.drawImage(background, 0, 0)
                 };
                 return socket;
             }
