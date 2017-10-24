@@ -105,6 +105,11 @@
                     }
                     return "";
                 }
+                function assureCookie() {
+                    if (getCookie("username").localeCompare(user.val())) {
+                        user.val(getCookie("username"));
+                    }
+                }
                 function playSound() {
                     var sound = document.getElementById("sound");
                     sound.play();
@@ -148,6 +153,7 @@
                     if (e.keyCode === 13){
                         sendMessage();
                     }
+                    assureCookie();
                 });
                 send.click(function () {
                     sendMessage();
@@ -156,20 +162,19 @@
                     if (e.keyCode === 13){
                         sendMessage();
                     }
+                    assureCookie();
                 });
                 user.keydown(function (e) {
                     if (e.keyCode === 13){
                         sendMessage();
                     }
                 });
+                user.click(function () {
+                    assureCookie()
+                });
                 user.keyup(function (e) {
                     setCookie("username", user.val(), 7)
                 });
-                setInterval(function () {
-                    if (getCookie("username").localeCompare(user.val())) {
-                        user.val(getCookie("username"));
-                    }
-                }, 1000);
             });
         </script>
     </body>
