@@ -123,6 +123,8 @@ body{
 
 #chatter{
     margin-bottom: 60rem;
+    padding-left: 0;
+    padding-right: 0;
 }
 
 #send:hover{
