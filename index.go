@@ -31,6 +31,11 @@ func getSnap() string {
 	return "snapcode_casher"
 }
 
+//Function for determining which snapcode will show on the template
+func getSides(i int) string {
+	return string((12 - i) / 2)
+}
+
 // isPrivateSubnet - check to see if this ip is in a private subnet
 func isPrivateSubnet(ipAddress net.IP) bool {
 	// my use case is only concerned with ipv4 atm
@@ -271,7 +276,7 @@ func init() {
 		os.Exit(1)*/
 		vT = visiTracker{0, 0, 0, []string{}}
 	}
-	tpl = template.Must(template.New("").Funcs(template.FuncMap{"snapCode": getSnap, "swapViews": (*visiTracker).swapViews, "getIter": getIter}).ParseGlob("templates/*.gohtml"))
+	tpl = template.Must(template.New("").Funcs(template.FuncMap{"snapCode": getSnap, "calcSides":getSides, "swapViews": (*visiTracker).swapViews, "getIter": getIter}).ParseGlob("templates/*.gohtml"))
 
 	var information info
 	fi, err = ioutil.ReadFile("../keys.json")
