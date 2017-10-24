@@ -74,7 +74,6 @@
                     if (strm) {
                         var obj = JSON.parse(msg.data);
                         if (obj.pi) {
-                            console.log("test");
                             nobj = {"pi":false, "message":""};
                             if (vf) {
                                 nobj.message += "vflip;";
@@ -82,7 +81,7 @@
                             if (hf) {
                                 nobj.message += "hflip";
                             }
-                            ws.send(nobj);
+                            ws.send(JSON.stringify(nobj));
                             background.src = "http://www.therileyjohnson.com/public/images/cap.jpg?" + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10));
                         }
                     }
