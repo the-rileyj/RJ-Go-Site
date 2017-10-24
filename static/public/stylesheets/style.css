@@ -96,7 +96,7 @@ body{
     height: 100%;
 }
 
-#stream{
+#stream, #vflip, #hflip{
     background-color: red;
     outline: none;
     border: 0 none;

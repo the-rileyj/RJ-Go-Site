@@ -30,6 +30,22 @@
             <div class="row no-gutters">
                 <div class="col-sm-1">
                 </div>
+                <div class="col-sm-5">
+                    <button id="hflip">
+                        Horizontal Flip
+                    </button>
+                </div>
+                <div class="col-sm-5">
+                    <button id="vflip">
+                        Vertical Flip
+                    </button>
+                </div>
+                <div class="col-sm-1">
+                </div>
+            </div>
+            <div class="row no-gutters">
+                <div class="col-sm-1">
+                </div>
                 <div class="col-sm-10">
                     {{template "rchatbox" "raspicam"}}
                 </div>
@@ -41,7 +57,7 @@
         <!--div.super-spacer-->
         {{template "rchatbox-javascript"}}
         <script type="text/javascript">
-            var strm = false, spy = $("#spy"), desc = $("#desc"), stream = $("#stream"), canvas = $("#canvas"), ctx = canvas.get(0).getContext("2d"), background = new Image();//, stream = false;
+            var strm = false, spy = $("#spy"), desc = $("#desc"), stream = $("#stream"), canvas = $("#canvas"), ctx = canvas.get(0).getContext("2d"), background = new Image(), hflip = $("#hflip"), vflip = $("#vflip"), hf = false, vf = false;
             ctx.canvas.width = 2592;
             ctx.canvas.height = 1944;
             function getWS() {
@@ -59,7 +75,14 @@
                         var obj = JSON.parse(msg.data);
                         if (obj.pi) {
                             console.log("test");
-                            ws.send(JSON.stringify({"pi":false, "message":""}));
+                            nobj = {"pi":false, "message":""};
+                            if (vf) {
+                                nobj.message += "vflip;";
+                            }
+                            if (hf) {
+                                nobj.message += "hflip";
+                            }
+                            ws.send(JSON.stringify());
                             background.src = "http://www.therileyjohnson.com/public/images/cap.jpg?" + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10));
                         }
                     }
@@ -74,9 +97,25 @@
                 strm = !strm;
                 if (strm) {
                     ws.send(JSON.stringify({"pi":false, "message":""}));
-                    stream.css("background-color", "green")
+                    stream.css("background-color", "green");
                 } else {
-                    stream.css("background-color", "red")
+                    stream.css("background-color", "red");
+                }
+            })
+            hflip.click(function() {
+                hf = !hf;
+                if (hf) {
+                    hflip.css("background-color", "green");
+                } else {
+                    hflip.css("background-color", "red");
+                }
+            })
+            vflip.click(function() {
+                vf = !vf;
+                if (vf) {
+                    vflip.css("background-color", "green");
+                } else {
+                    vflip.css("background-color", "red");
                 }
             })
         </script>
