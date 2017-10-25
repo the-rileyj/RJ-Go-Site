@@ -1,3 +1,3 @@
-# RJ's New Site 
+# Home of RJ's New Site and WebApps
  
-RJ's new site, where the backend is implemented in GoLang 
+RJ's new site (in golang!), home to many WebApps 
