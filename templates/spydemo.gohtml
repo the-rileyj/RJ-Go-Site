@@ -69,6 +69,11 @@
             setInterval(function() {
                 ctx.drawImage(background, 0, 0);
             }, 250);
+            setInterval(function() {
+                if(strm) {
+                    background.src = "http://www.therileyjohnson.com/public/images/cap.jpg?" + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10)) + String(Math.floor(Math.random() * 10));
+                }
+            }, 5000);
             var ws = getWS();
             stream.click(function() {
                 strm = !strm;
