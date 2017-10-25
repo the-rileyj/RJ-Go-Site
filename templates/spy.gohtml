@@ -57,7 +57,7 @@
         <!--div.super-spacer-->
         {{template "rchatbox-javascript"}}
         <script type="text/javascript">
-            var strm = false, spy = $("#spy"), desc = $("#desc"), stream = $("#stream"), canvas = document.getElementById("canvas"), ctx = canvas.getContext("2d"), background = new Image(), hflip = $("#hflip"), vflip = $("#vflip"), hf = false, vf = false;
+            var lupdate = undefined, strm = false, spy = $("#spy"), desc = $("#desc"), stream = $("#stream"), canvas = document.getElementById("canvas"), ctx = canvas.getContext("2d"), background = new Image(), hflip = $("#hflip"), vflip = $("#vflip"), hf = false, vf = false;
             ctx.canvas.width = 2592;
             ctx.canvas.height = 1944;
             ctx.fillStyle = "white";
@@ -74,6 +74,7 @@
                 };
                 socket.onmessage = function(msg){
                     if (strm) {
+                        lupdate = new Date();
                         var obj = JSON.parse(msg.data);
                         if (obj.pi) {
                             nobj = {"pi":false, "message":""};
@@ -92,6 +93,22 @@
             }
             setInterval(function() {
                 ctx.drawImage(background, 0, 0);
+            }, 250);
+            setInterval(function() {
+                if(strm) {
+                    var cupdate = new Date(lupdate + 5000), now = new Date();
+                    if(cupdate < now) {
+                        nobj = {"pi":false, "message":""};
+                        if (vf) {
+                            nobj.message += "vflip;";
+                        }
+                        if (hf) {
+                            nobj.message += "hflip";
+                        }
+                        lupdate = new Date();
+                        ws.send(JSON.stringify(nobj));
+                    }
+                }
             }, 250);
             var ws = getWS();
             stream.click(function() {
