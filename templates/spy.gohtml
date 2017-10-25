@@ -57,9 +57,11 @@
         <!--div.super-spacer-->
         {{template "rchatbox-javascript"}}
         <script type="text/javascript">
-            var strm = false, spy = $("#spy"), desc = $("#desc"), stream = $("#stream"), canvas = $("#canvas"), ctx = canvas.get(0).getContext("2d"), background = new Image(), hflip = $("#hflip"), vflip = $("#vflip"), hf = false, vf = false;
+            var strm = false, spy = $("#spy"), desc = $("#desc"), stream = $("#stream"), canvas = document.getElementById("canvas"), ctx = canvas.getContext("2d"), background = new Image(), hflip = $("#hflip"), vflip = $("#vflip"), hf = false, vf = false;
             ctx.canvas.width = 2592;
             ctx.canvas.height = 1944;
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             function getWS() {
                 var socket = new WebSocket("ws://" + window.location.host + "/wsspy");
                 socket.onclose = function(){
