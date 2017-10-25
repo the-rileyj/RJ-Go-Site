@@ -140,6 +140,10 @@ func spy(w http.ResponseWriter, r *http.Request) {
 	tpl.ExecuteTemplate(w, "spy.gohtml", nil)
 }
 
+func spydemo(w http.ResponseWriter, r *http.Request) {
+	tpl.ExecuteTemplate(w, "spydemo.gohtml", nil)
+}
+
 func sms(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(1, r.URL.Query()["AccountSid"])
 	fmt.Println(2, r.URL.Query()["accountsid"])
@@ -302,6 +306,7 @@ func main() {
 	http.HandleFunc("/public/", serveFile)
 	http.HandleFunc("/sms", sms)
 	http.HandleFunc("/spy", spy)
+	http.HandleFunc("/demo", spydemo)
 	http.HandleFunc("/subphoto", setSpyPic)
 	http.HandleFunc("/wschat", func(w http.ResponseWriter, r *http.Request) {
 		mc.HandleRequest(w, r)
